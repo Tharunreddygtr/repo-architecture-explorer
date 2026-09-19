@@ -7,6 +7,34 @@ from typing import Any
 DEFAULT_EXCLUDES = {"__pycache__", ".git", ".venv", "node_modules", "venv", "dist", "build"}
 
 
+def _classify_layer(name: str) -> str:
+    lowercase_name = name.lower()
+    if lowercase_name in {"app.py", "main.py"} or lowercase_name.endswith("/main.py"):
+        return "entry"
+    if any(token in lowercase_name for token in ("service", "handler", "controller")):
+        return "service"
+    if any(token in lowercase_name for token in ("model", "repo", "dao", "db")):
+        return "data"
+    return "infra"
+
+
+def _module_lookup(summary: dict[str, Any]) -> dict[str, str]:
+    lookup: dict[str, str] = {}
+    for item in summary.get("modules", []):
+        name = item.get("name", "")
+        relative_path = str(item.get("relative_path", "")).replace("\\", "/")
+        if not name:
+            continue
+        lookup[name] = name
+        lookup[Path(name).stem] = name
+        if relative_path:
+            module_path = relative_path[:-3] if relative_path.endswith(".py") else relative_path
+            lookup[module_path] = name
+            lookup[module_path.replace("/", ".")] = name
+            lookup[Path(relative_path).stem] = name
+    return lookup
+
+
 def _read_python_file(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
@@ -109,7 +137,7 @@ def analyze_project(project_root: str | Path) -> dict[str, Any]:
         "project_root": str(root),
         "modules": modules,
         "dependency_edges": dependency_edges,
-        "entrypoints": [m for m in modules if m["name"].endswith("main.py") or "main" in m["name"]],
+        "entrypoints": [m for m in modules if _classify_layer(m["name"]) == "entry"],
     }
 
 
@@ -258,14 +286,7 @@ def build_project_snapshot(summary: dict[str, Any]) -> dict[str, Any]:
     for item in modules:
         name = item.get("name", "")
         lowercase_name = name.lower()
-        if "main" in lowercase_name:
-            layers["entry"].append(name)
-        elif any(token in lowercase_name for token in ("service", "handler", "controller")):
-            layers["service"].append(name)
-        elif any(token in lowercase_name for token in ("model", "repo", "dao", "db")):
-            layers["data"].append(name)
-        else:
-            layers["infra"].append(name)
+        layers[_classify_layer(name)].append(name)
 
     return {
         "project_name": summary.get("project_name", "unknown"),
@@ -288,21 +309,12 @@ def build_mermaid_diagram(summary: dict[str, Any]) -> str:
     lines = ["graph TD"]
     seen = set()
 
-    module_lookup = {}
+    module_lookup = _module_lookup(summary)
     for item in modules:
         name = item.get("name", "")
         if name:
             lines.append(f"    {name}[{name}]")
             seen.add(name)
-
-        relative_path = item.get("relative_path", "")
-        if relative_path:
-            normalized = relative_path.replace("\\", "/")
-            module_lookup[normalized[:-3]] = name
-            module_lookup[normalized[:-3].replace("/", ".")] = name
-            stem = Path(normalized).stem
-            module_lookup[stem] = name
-            module_lookup[name] = name
 
     for src, dst in summary.get("dependency_edges", []):
         resolved_src = module_lookup.get(src, src)
@@ -337,22 +349,19 @@ def build_svg_graph(
 
     def layer_for(name: str) -> str:
         lower = name.lower()
-        if "main" in lower:
-            return "entry"
-        if any(token in lower for token in ("service", "handler", "controller")):
-            return "service"
-        if any(token in lower for token in ("model", "repo", "dao", "db")):
-            return "data"
-        return "infra"
+        return _classify_layer(name)
 
     if visible_layers:
         layer_order = [layer for layer in layer_order if layer in visible_layers]
 
     module_index = {item.get("name", ""): item for item in modules if item.get("name")}
     directed_graph = {name: [] for name in all_modules}
+    module_lookup = _module_lookup(summary)
     for src, dst in summary.get("dependency_edges", []):
-        if src in directed_graph and dst in directed_graph:
-            directed_graph[src].append(dst)
+        resolved_src = module_lookup.get(src)
+        resolved_dst = module_lookup.get(dst)
+        if resolved_src in directed_graph and resolved_dst in directed_graph:
+            directed_graph[resolved_src].append(resolved_dst)
 
     allowed_nodes: set[str] = set()
     if max_depth is not None and max_depth >= 0:
@@ -412,10 +421,14 @@ def build_svg_graph(
     for src, dst in summary.get("dependency_edges", []):
         if src not in allowed_nodes or dst not in allowed_nodes:
             continue
-        src_layer = layer_for(src)
-        dst_layer = layer_for(dst)
-        src_idx = next((index for index, name in enumerate(matrix.get(src_layer, [])) if name == src), None)
-        dst_idx = next((index for index, name in enumerate(matrix.get(dst_layer, [])) if name == dst), None)
+        resolved_src = module_lookup.get(src)
+        resolved_dst = module_lookup.get(dst)
+        if not resolved_src or not resolved_dst:
+            continue
+        src_layer = layer_for(resolved_src)
+        dst_layer = layer_for(resolved_dst)
+        src_idx = next((index for index, name in enumerate(matrix.get(src_layer, [])) if name == resolved_src), None)
+        dst_idx = next((index for index, name in enumerate(matrix.get(dst_layer, [])) if name == resolved_dst), None)
         if src_idx is None or dst_idx is None:
             continue
         src_x = x_positions.get(src_layer, 180)
@@ -433,20 +446,19 @@ def build_module_details(summary: dict[str, Any], module_name: str) -> dict[str,
     if not module:
         return {"name": module_name, "classes": [], "functions": [], "imports": [], "dependencies": [], "reverse_dependencies": [], "layer": "unknown"}
 
-    dependencies = [
-        dst for src, dst in summary.get("dependency_edges", []) if src == module_name
-    ]
-    reverse_dependencies = [
-        src for src, dst in summary.get("dependency_edges", []) if dst == module_name
-    ]
-    layer = "infra"
-    lower = module_name.lower()
-    if "main" in lower:
-        layer = "entry"
-    elif any(token in lower for token in ("service", "handler", "controller")):
-        layer = "service"
-    elif any(token in lower for token in ("model", "repo", "dao", "db")):
-        layer = "data"
+    module_lookup = _module_lookup(summary)
+    resolved_module_name = module_lookup.get(module_name, module_name)
+    dependencies = sorted({
+        module_lookup[dst]
+        for src, dst in summary.get("dependency_edges", [])
+        if module_lookup.get(src) == resolved_module_name and module_lookup.get(dst)
+    })
+    reverse_dependencies = sorted({
+        module_lookup[src]
+        for src, dst in summary.get("dependency_edges", [])
+        if module_lookup.get(dst) == resolved_module_name and module_lookup.get(src)
+    })
+    layer = _classify_layer(resolved_module_name)
 
     return {
         "name": module_name,
