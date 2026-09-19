@@ -279,6 +279,8 @@ You can test the PR-review capability locally before configuring a GitHub webhoo
 python local_pr_review.py <base-commit> <head-commit> --output .\docs\local-pr-review.md
 ```
 
+When `--output` is provided, the command also writes a neighboring `.svg` asset for the HLD and inserts a Markdown image link, so the HLD renders in GitHub and VS Code instead of appearing as SVG source text. The Mermaid diagrams render in GitHub and Mermaid-enabled Markdown previews.
+
 Example using the repository's published commits:
 
 ```powershell

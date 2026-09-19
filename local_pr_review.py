@@ -51,7 +51,7 @@ def _materialize_commit(commit: str, target: Path) -> None:
         tar.extractall(target, filter="data")
 
 
-def run(base: str, head: str) -> str:
+def run(base: str, head: str, hld_output: Path | None = None) -> str:
     base_files = _git_files(base)
     head_files = _git_files(head)
     diff_status = _git_diff_status(base, head)
@@ -67,6 +67,12 @@ def run(base: str, head: str) -> str:
     removed_names = [Path(item).name for item in impact["removed_files"]]
     artifacts = build_pr_review_artifacts(summary, changed_names, removed_names)
 
+    if hld_output:
+        hld_output.write_text(artifacts["hld_svg"], encoding="utf-8")
+        hld_section = [f"![PR HLD diagram]({hld_output.name})"]
+    else:
+        hld_section = ["```svg", artifacts["hld_svg"], "```"]
+
     lines = [
         f"# Local Architecture PR Review: {base} -> {head}",
         "",
@@ -81,9 +87,7 @@ def run(base: str, head: str) -> str:
         "",
         "## HLD Diagram",
         "",
-        "```svg",
-        artifacts["hld_svg"],
-        "```",
+        *hld_section,
         "",
         "## Dependency Impact Diagram",
         "",
@@ -111,7 +115,8 @@ if __name__ == "__main__":
     parser.add_argument("head", help="Head commit, branch, or tag")
     parser.add_argument("--output", type=Path, help="Optional output Markdown path")
     args = parser.parse_args()
-    report = run(args.base, args.head)
+    hld_output = args.output.with_suffix(".svg") if args.output else None
+    report = run(args.base, args.head, hld_output)
     if args.output:
         args.output.write_text(report, encoding="utf-8")
         print(f"Wrote {args.output}")
