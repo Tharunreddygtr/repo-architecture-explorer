@@ -10,6 +10,7 @@ from pathlib import Path
 from architecture_explorer import (
   analyze_project,
   build_dashboard_payload,
+  build_pr_review_artifacts,
   build_mermaid_diagram,
   build_module_details,
   build_project_snapshot,
@@ -23,6 +24,7 @@ app.config["WATCHER"] = RepoWatcher(Path(__file__).resolve().parent)
 app.config["GITHUB_WEBHOOK_SECRET"] = os.getenv("GITHUB_WEBHOOK_SECRET")
 app.config["GITHUB_TOKEN"] = os.getenv("GITHUB_TOKEN")
 app.config["GITHUB_REPOSITORY"] = os.getenv("GITHUB_REPOSITORY")
+app.config["LATEST_PR_REVIEW"] = None
 
 HTML_TEMPLATE = """
 <!doctype html>
@@ -60,6 +62,8 @@ HTML_TEMPLATE = """
     .review-form { display: grid; gap: 8px; margin-top: 16px; }
     .review-form textarea { min-height: 70px; resize: vertical; }
     .review-status { color: #93c5fd; }
+    .pr-diagrams { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+    .pr-diagram { background: #020817; border: 1px solid #334155; border-radius: 8px; padding: 12px; }
     .hidden { display: none; }
     svg { display: block; max-width: 100%; background: #020817; }
   </style>
@@ -141,6 +145,18 @@ HTML_TEMPLATE = """
 
     <section class="panel">
       <h2>PR Review Summary</h2>
+      {% if pr_review %}
+      <div class="small">Latest webhook: PR #{{ pr_review.pr_number }} | {{ pr_review.action }} | {{ pr_review.repository }}</div>
+      <div class="pr-diagrams">
+        <div class="pr-diagram"><h3>PR HLD</h3>{{ pr_review.artifacts.hld_svg | safe }}</div>
+        <div class="pr-diagram"><h3>Dependency Impact</h3><pre>{{ pr_review.artifacts.impact_mermaid }}</pre></div>
+        <div class="pr-diagram"><h3>Layer View</h3><pre>{{ pr_review.artifacts.layer_mermaid }}</pre></div>
+        <div class="pr-diagram"><h3>Repository Dependency Graph</h3><pre>{{ pr_review.artifacts.dependency_mermaid }}</pre></div>
+      </div>
+      <details open><summary>HLD and LLD artifacts</summary><pre>{{ pr_review.artifacts.hld_markdown }}
+
+{{ pr_review.artifacts.lld_markdown }}</pre></details>
+      {% endif %}
       <pre>{{ pr_summary }}</pre>
     </section>
   </div>
@@ -266,6 +282,45 @@ def _post_github_issue_comment(repository: str, pr_number: int, comment: str) ->
         return {"error": "GitHub API could not be reached"}, 502
 
 
+def _github_get_json(endpoint: str) -> tuple[object, int]:
+    token = app.config.get("GITHUB_TOKEN") or os.getenv("GITHUB_TOKEN")
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "repo-architecture-explorer",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    try:
+        with urlopen(Request(endpoint, method="GET", headers=headers), timeout=15) as response:
+            return json.loads(response.read().decode("utf-8")), response.status
+    except HTTPError as error:
+        return {"error": f"GitHub API returned HTTP {error.code}"}, error.code
+    except URLError:
+        return {"error": "GitHub API could not be reached"}, 502
+
+
+def _fetch_pr_file_changes(repository: str, pr_number: int) -> tuple[list[str], list[str], list[str]]:
+    endpoint = f"https://api.github.com/repos/{repository}/pulls/{pr_number}/files?per_page=100"
+    response, status = _github_get_json(endpoint)
+    if status >= 400 or not isinstance(response, list):
+        return [], [], []
+
+    changed = []
+    added = []
+    removed = []
+    for item in response:
+        filename = item.get("filename") if isinstance(item, dict) else None
+        if not filename:
+            continue
+        changed.append(filename)
+        if item.get("status") == "removed":
+            removed.append(filename)
+        else:
+            added.append(filename)
+    return changed, added, removed
+
+
 @app.route("/")
 def index():
     summary, payload, snapshot, refresh_status = _analyze_current_repo()
@@ -281,6 +336,7 @@ def index():
         layers=snapshot["layers"],
         mermaid=mermaid,
         pr_summary=pr_summary,
+        pr_review=app.config.get("LATEST_PR_REVIEW"),
         refresh_status=refresh_status,
         github_repository=app.config.get("GITHUB_REPOSITORY") or os.getenv("GITHUB_REPOSITORY", ""),
     )
@@ -412,6 +468,14 @@ def api_pr_summary():
     return (result, 200, {"Content-Type": "text/plain; charset=utf-8"})
 
 
+@app.route("/api/pr-review")
+def api_pr_review():
+    review = app.config.get("LATEST_PR_REVIEW")
+    if not review:
+        return jsonify({"error": "no pull-request review has been received"}), 404
+    return jsonify(review)
+
+
 @app.route("/api/watcher-status")
 def api_watcher_status():
     watcher = app.config["WATCHER"]
@@ -445,9 +509,16 @@ def api_github_pr_webhook():
 
     payload = request.get_json(silent=True) or {}
     pr_data = payload.get("pull_request") or {}
-    changed_files = pr_data.get("changed_files") or []
-    if not isinstance(changed_files, list):
-        changed_files = []
+    repository = ((payload.get("repository") or {}).get("full_name") or app.config.get("GITHUB_REPOSITORY") or "").strip()
+    pr_number = pr_data.get("number")
+    changed_files, added_files, removed_files = ([], [], [])
+    if repository and pr_number:
+      changed_files, added_files, removed_files = _fetch_pr_file_changes(repository, int(pr_number))
+
+    payload_changed_files = pr_data.get("changed_files") or []
+    if not changed_files and isinstance(payload_changed_files, list):
+      changed_files = payload_changed_files
+      added_files = payload_changed_files
 
     base_files = payload.get("base_files") or []
     head_files = payload.get("head_files") or changed_files
@@ -464,22 +535,25 @@ def api_github_pr_webhook():
     summary, _ = watcher.scan()
     impact = analyze_pr_impact(base_files, head_files, summary)
     report = render_pr_impact_summary(base_files, head_files, summary)
+    changed_names = [Path(item).name for item in changed_files]
+    artifacts = build_pr_review_artifacts(summary, changed_names, [Path(item).name for item in removed_files])
+    review = {
+      "event": request.headers.get("X-GitHub-Event", "pull_request"),
+      "action": payload.get("action", "unknown"),
+      "repository": repository,
+      "pr_number": pr_number,
+      "title": pr_data.get("title"),
+      "base_ref": (pr_data.get("base") or {}).get("ref"),
+      "head_ref": (pr_data.get("head") or {}).get("ref"),
+      "changed_files": changed_files,
+      "diff_summary": {"base_files": base_files, "head_files": head_files},
+      "summary": impact["summary"],
+      "report": report,
+      "artifacts": artifacts,
+    }
+    app.config["LATEST_PR_REVIEW"] = review
 
-    return jsonify({
-        "event": request.headers.get("X-GitHub-Event", "pull_request"),
-        "action": payload.get("action", "unknown"),
-        "pr_number": pr_data.get("number"),
-        "title": pr_data.get("title"),
-        "base_ref": (pr_data.get("base") or {}).get("ref"),
-        "head_ref": (pr_data.get("head") or {}).get("ref"),
-        "changed_files": changed_files,
-        "diff_summary": {
-            "base_files": base_files,
-            "head_files": head_files,
-        },
-        "summary": impact["summary"],
-        "report": report,
-    })
+    return jsonify(review)
 
 
 if __name__ == "__main__":

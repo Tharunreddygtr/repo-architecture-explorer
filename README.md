@@ -58,7 +58,10 @@ The service is intentionally separate from the application repository it analyze
 ### GitHub integration
 
 - Validates GitHub webhook signatures with `X-Hub-Signature-256`.
-- Accepts pull-request webhook payloads and returns architecture impact data.
+- Automatically retrieves the real changed-file list from the GitHub pull-request API when `GITHUB_TOKEN` is configured.
+- Automatically generates and stores the latest PR review bundle when a pull-request webhook arrives.
+- Shows the latest PR HLD diagram, dependency-impact diagram, layer diagram, Mermaid graph, HLD, and LLD in the dashboard.
+- Exposes the stored review bundle through `/api/pr-review` for external tooling.
 - Posts a real issue-style pull-request comment through the GitHub REST API.
 - Enriches comments with the selected module, layer, dependencies, and reverse dependencies.
 - Returns explicit errors when the token, repository, PR number, or comment data is missing.
@@ -216,7 +219,11 @@ Forces a repository rescan and returns the refreshed project snapshot.
 
 ### `POST /api/github/pr-webhook`
 
-Validates a GitHub pull-request webhook and returns the architecture impact report. Send `X-GitHub-Event: pull_request` and a matching `X-Hub-Signature-256` header when `GITHUB_WEBHOOK_SECRET` is configured.
+Validates a GitHub pull-request webhook, retrieves changed files, generates the diagram-first review bundle, stores it for the dashboard, and returns the complete architecture review. Send `X-GitHub-Event: pull_request` and a matching `X-Hub-Signature-256` header when `GITHUB_WEBHOOK_SECRET` is configured. `GITHUB_TOKEN` allows the service to retrieve the actual changed filenames because GitHub's native `changed_files` field is only a count.
+
+### `GET /api/pr-review`
+
+Returns the latest automatically generated pull-request review bundle, including `hld_svg`, `dependency_mermaid`, `layer_mermaid`, `impact_mermaid`, `hld_markdown`, and `lld_markdown`. It returns `404` until a webhook has been received.
 
 ## GitHub pull-request setup
 
@@ -224,10 +231,10 @@ Validates a GitHub pull-request webhook and returns the architecture impact repo
 2. Configure `GITHUB_WEBHOOK_SECRET` in the service and in the GitHub webhook.
 3. Create a GitHub webhook pointing to `/api/github/pr-webhook`.
 4. Select the `Pull requests` event and JSON content type.
-5. Configure `GITHUB_TOKEN` and `GITHUB_REPOSITORY` for dashboard-originated comments.
-6. Give the token only the repository permission needed to write pull-request comments.
+5. Configure `GITHUB_TOKEN` and `GITHUB_REPOSITORY` so the service can fetch PR file names and support dashboard-originated comments.
+6. Give the token only the repository permissions needed to read pull requests and write pull-request comments.
 
-The webhook endpoint validates the signature but does not automatically post a comment. The dashboard or an external automation client can call `/api/github/pr-comment` when a reviewer chooses a component and submits feedback.
+The webhook automatically generates the architecture artifacts and makes them visible in the dashboard. It does not automatically post a GitHub comment; the dashboard or an external automation client can call `/api/github/pr-comment` when a reviewer chooses a component and submits feedback.
 
 With GitHub CLI authenticated, the repository webhook can be created from PowerShell:
 

@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from architecture_explorer import analyze_project, build_mermaid_diagram, build_project_snapshot, build_svg_graph
+from architecture_explorer import analyze_project, build_mermaid_diagram, build_project_snapshot, build_pr_review_artifacts, build_svg_graph
 from pr_impact import analyze_pr_impact, render_pr_impact_summary
 from repo_watcher import RepoWatcher
 from app import app
@@ -175,6 +175,53 @@ def test_github_pr_webhook_validates_signature_and_uses_diff_data():
     assert valid_response.status_code == 200
     assert data["diff_summary"]["base_files"] == ["app/main.py"]
     assert data["diff_summary"]["head_files"] == ["app/main.py", "app/service.py"]
+
+
+def test_pr_review_artifacts_include_multiple_diagrams():
+    summary = {
+        "project_name": "demo_app",
+        "entrypoints": [{"name": "main.py"}],
+        "modules": [
+            {"name": "main.py", "relative_path": "app/main.py", "classes": [], "functions": [], "imports": []},
+            {"name": "service.py", "relative_path": "app/service.py", "classes": [], "functions": [], "imports": []},
+        ],
+        "dependency_edges": [("main.py", "service.py")],
+    }
+
+    artifacts = build_pr_review_artifacts(summary, ["service.py"])
+
+    assert {"hld_svg", "dependency_mermaid", "layer_mermaid", "impact_mermaid", "hld_markdown", "lld_markdown"} <= set(artifacts)
+    assert "PR HLD View" in artifacts["hld_svg"]
+    assert "service.py" in artifacts["impact_mermaid"]
+
+
+def test_webhook_persists_diagram_first_review(monkeypatch):
+    client = app.test_client()
+    monkeypatch.setattr(
+        "app._fetch_pr_file_changes",
+        lambda repository, pr_number: (["app.py"], ["app.py"], []),
+    )
+    app.config["GITHUB_WEBHOOK_SECRET"] = None
+
+    response = client.post(
+        "/api/github/pr-webhook",
+        json={
+            "action": "opened",
+            "repository": {"full_name": "example/repo"},
+            "pull_request": {"number": 44, "title": "Architecture change", "changed_files": 1},
+            "base_files": [],
+            "head_files": ["app.py"],
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["pr_number"] == 44
+    assert "hld_svg" in data["artifacts"]
+    assert "layer_mermaid" in data["artifacts"]
+    stored = client.get("/api/pr-review")
+    assert stored.status_code == 200
+    assert stored.get_json()["pr_number"] == 44
 
 
 def test_github_webhook_secret_can_be_loaded_from_environment(monkeypatch):

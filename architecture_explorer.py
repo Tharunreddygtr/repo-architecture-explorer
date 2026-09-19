@@ -328,6 +328,55 @@ def build_mermaid_diagram(summary: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def build_layer_mermaid(summary: dict[str, Any]) -> str:
+    snapshot = build_project_snapshot(summary)
+    lines = ["graph LR"]
+    for layer, names in snapshot["layers"].items():
+        lines.append(f"    {layer}[{layer.title()} Layer]")
+        for name in names:
+            node_id = name.replace(".", "_").replace("-", "_")
+            lines.append(f"    {node_id}[{name}]")
+            lines.append(f"    {layer} --> {node_id}")
+    return "\n".join(lines)
+
+
+def build_impact_mermaid(summary: dict[str, Any], changed_names: list[str] | None = None) -> str:
+    changed = set(changed_names or [])
+    module_lookup = _module_lookup(summary)
+    lines = ["graph TD"]
+    seen: set[str] = set()
+    for src, dst in summary.get("dependency_edges", []):
+        resolved_src = module_lookup.get(src)
+        resolved_dst = module_lookup.get(dst)
+        if not resolved_src or not resolved_dst or (resolved_src not in changed and resolved_dst not in changed):
+            continue
+        for name in (resolved_src, resolved_dst):
+            if name not in seen:
+                lines.append(f"    {name.replace('.', '_')}[{name}]")
+                seen.add(name)
+        lines.append(f"    {resolved_src.replace('.', '_')} --> {resolved_dst.replace('.', '_')}")
+    if len(lines) == 1:
+        lines.append("    Impact[No internal dependency impact detected]")
+    return "\n".join(lines)
+
+
+def build_pr_review_artifacts(
+    summary: dict[str, Any],
+    changed_names: list[str] | None = None,
+    removed_names: list[str] | None = None,
+) -> dict[str, str]:
+    changed_names = changed_names or []
+    removed_names = removed_names or []
+    return {
+        "hld_svg": build_svg_graph(summary, added_names=changed_names, removed_names=removed_names, view_name="PR HLD"),
+        "dependency_mermaid": build_mermaid_diagram(summary),
+        "layer_mermaid": build_layer_mermaid(summary),
+        "impact_mermaid": build_impact_mermaid(summary, changed_names),
+        "hld_markdown": render_hld_markdown(summary),
+        "lld_markdown": render_lld_markdown(summary),
+    }
+
+
 def build_svg_graph(
     summary: dict[str, Any],
     added_names: list[str] | None = None,
@@ -342,7 +391,7 @@ def build_svg_graph(
     added_names = set((added_names or []) or [])
     removed_names = set((removed_names or []) or [])
     visible_layers = set((visible_layers or []) or [])
-    if added_names or removed_names:
+    if (added_names or removed_names) and view_name == "Architecture":
         view_name = "PR"
     if not all_modules:
         return "<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='200' viewBox='0 0 1200 200'><text x='50%' y='50%' text-anchor='middle' fill='#e2e8f0'>No modules detected</text></svg>"
