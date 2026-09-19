@@ -19,6 +19,22 @@ def _module_matches_changed(item: dict[str, Any], changed_paths: set[str], chang
     )
 
 
+def _module_lookup(summary: dict[str, Any]) -> dict[str, str]:
+    lookup: dict[str, str] = {}
+    for item in summary.get("modules", []):
+        name = item.get("name", "")
+        relative_path = _normalize_path(item.get("relative_path", ""))
+        if not name:
+            continue
+        lookup[name] = name
+        lookup[Path(name).stem] = name
+        if relative_path:
+            module_path = relative_path[:-3] if relative_path.endswith(".py") else relative_path
+            lookup[module_path] = name
+            lookup[module_path.replace("/", ".")] = name
+    return lookup
+
+
 def analyze_pr_impact(base_files: list[str], head_files: list[str], summary: dict[str, Any]) -> dict[str, Any]:
     base_set = {_normalize_path(item) for item in base_files}
     head_set = {_normalize_path(item) for item in head_files}
@@ -36,9 +52,14 @@ def analyze_pr_impact(base_files: list[str], head_files: list[str], summary: dic
         if _module_matches_changed(item, changed_paths, changed_names):
             impacted_modules.append(item.get("name", ""))
 
+    module_lookup = _module_lookup(summary)
     for edge_src, edge_dst in summary.get("dependency_edges", []):
-        if edge_src in changed_paths or edge_dst in changed_paths or edge_src in changed_names or edge_dst in changed_names:
-            impacted_modules.append(f"{edge_src} -> {edge_dst}")
+        resolved_src = module_lookup.get(edge_src)
+        resolved_dst = module_lookup.get(edge_dst)
+        if not resolved_src or not resolved_dst:
+            continue
+        if resolved_src in changed_names or resolved_dst in changed_names:
+            impacted_modules.append(f"{resolved_src} -> {resolved_dst}")
 
     return {
         "touched_files": touched,
@@ -56,7 +77,8 @@ def analyze_pr_impact(base_files: list[str], head_files: list[str], summary: dic
 def render_pr_impact_summary(base_files: list[str], head_files: list[str], summary: dict[str, Any]) -> str:
     impact = analyze_pr_impact(base_files, head_files, summary)
     modules = summary.get("modules", [])
-    changed_paths = {_normalize_path(item) for item in head_files}
+    impact = analyze_pr_impact(base_files, head_files, summary)
+    changed_paths = {_normalize_path(item) for item in impact["changed_files"]}
     changed_names = {Path(p).name for p in changed_paths}
 
     impacted_module_details = []
