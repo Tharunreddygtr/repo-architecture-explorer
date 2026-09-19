@@ -217,6 +217,15 @@ Validates a GitHub pull-request webhook and returns the architecture impact repo
 
 The webhook endpoint validates the signature but does not automatically post a comment. The dashboard or an external automation client can call `/api/github/pr-comment` when a reviewer chooses a component and submits feedback.
 
+With GitHub CLI authenticated, the repository webhook can be created from PowerShell:
+
+```powershell
+cd C:\MEDPLUS-HRMS\repo-architecture-explorer
+.\examples\create-github-webhook.ps1 -BaseUrl "https://architecture.example.com"
+```
+
+The script prompts for the webhook secret in the terminal and configures the `pull_request` event. Set the same secret as `GITHUB_WEBHOOK_SECRET` in the deployed service before creating the hook. Do not put the secret in the command line or commit it.
+
 ## Sample templates
 
 Copyable examples are in [examples](examples):
@@ -225,6 +234,7 @@ Copyable examples are in [examples](examples):
 - [graph-filter-request.txt](examples/graph-filter-request.txt) - filtered graph request.
 - [github-pr-webhook.json](examples/github-pr-webhook.json) - webhook payload shape for local testing.
 - [github-pr-comment.json](examples/github-pr-comment.json) - selected-component comment request.
+- [create-github-webhook.ps1](examples/create-github-webhook.ps1) - GitHub CLI webhook creation script.
 - [github-actions-architecture-review.yml](examples/github-actions-architecture-review.yml) - CI workflow template for calling the webhook.
 
 ## Docker
