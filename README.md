@@ -94,6 +94,8 @@ repo-architecture-explorer/
 ├── requirements.txt               Runtime and test dependencies
 ├── Dockerfile                     Gunicorn container packaging
 ├── .env.example                   Environment variable template
+├── self_analysis.py               Reproducible self-analysis report generator
+├── docs/self-analysis.md          Checked-in HLD/LLD report for this repository
 ├── examples/                      Integration and API sample templates
 └── tests/test_pr_impact.py        Regression and integration tests
 ```
@@ -136,6 +138,16 @@ Never commit real tokens or webhook secrets. Use a secret manager or CI/CD secre
 6. Enter a repository, pull-request number, and comment to post a real GitHub PR comment for the selected component.
 
 The dashboard uses `/api/graph` to refresh the SVG graph without reloading the page.
+
+## Self-analysis report
+
+The repository runs the explorer against itself. The checked-in result is available at [docs/self-analysis.md](docs/self-analysis.md), including the current HLD, LLD, layers, internal dependency graph, and component drilldown.
+
+Regenerate the report from the repository root with:
+
+```powershell
+python self_analysis.py > docs/self-analysis.md
+```
 
 ## API reference
 
