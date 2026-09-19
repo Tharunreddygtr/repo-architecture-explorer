@@ -1,0 +1,6 @@
+# Copy these values into the deployment environment.
+# Never commit real secrets.
+GITHUB_WEBHOOK_SECRET=replace-with-a-random-webhook-secret
+GITHUB_TOKEN=replace-with-a-token-that-can-write-pull-request-comments
+GITHUB_REPOSITORY=owner/repository
+PORT=8000

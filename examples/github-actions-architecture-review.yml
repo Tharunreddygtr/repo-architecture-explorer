@@ -1,0 +1,37 @@
+name: Architecture Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  architecture-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build a deterministic architecture webhook payload
+        id: payload
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          head_files=$(gh api --paginate \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
+            --jq '.[].filename' | jq -R -s 'split("\\n") | map(select(length > 0))')
+          jq --argjson head_files "$head_files" \
+            '. + {base_files: [], head_files: $head_files}' \
+            "$GITHUB_EVENT_PATH" > payload.json
+          echo "payload=$(jq -c . payload.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Send architecture review webhook
+        env:
+          ARCHITECTURE_EXPLORER_URL: ${{ secrets.ARCHITECTURE_EXPLORER_URL }}
+          WEBHOOK_SECRET: ${{ secrets.ARCHITECTURE_EXPLORER_WEBHOOK_SECRET }}
+          PAYLOAD: ${{ steps.payload.outputs.payload }}
+        run: |
+          signature=$(printf '%s' "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | sed 's/^.* //')
+          curl --fail-with-body --request POST \
+            --header 'Content-Type: application/json' \
+            --header 'X-GitHub-Event: pull_request' \
+            --header "X-Hub-Signature-256: sha256=$signature" \
+            --data "$PAYLOAD" \
+            "$ARCHITECTURE_EXPLORER_URL/api/github/pr-webhook"

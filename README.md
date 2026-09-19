@@ -1,0 +1,254 @@
+# Repo Architecture Explorer
+
+Repo Architecture Explorer is a standalone architecture intelligence service for developers, reviewers, and platform teams. It scans a repository, derives architecture from source code, renders HLD and LLD views, explains dependency impact, and connects selected architecture components to GitHub pull-request review.
+
+The service is intentionally separate from the application repository it analyzes. The default implementation uses Python AST analysis and Flask, so it can run locally, in CI, or as a small internal review service.
+
+## Capabilities
+
+### Repository analysis
+
+- Recursively scans Python source files.
+- Excludes common generated and dependency directories: `.git`, `.venv`, `venv`, `node_modules`, `dist`, `build`, and `__pycache__`.
+- Extracts module names and paths.
+- Extracts classes, synchronous functions, asynchronous functions, imports, and call expressions.
+- Builds dependency edges between discovered modules.
+- Normalizes Windows and POSIX paths for cross-platform use.
+- Classifies modules heuristically into `entry`, `service`, `data`, and `infra` layers based on file names.
+
+### HLD and LLD documentation
+
+- Generates High Level Design Markdown.
+- Generates Low Level Design Markdown.
+- Generates HTML HLD and LLD fragments for the dashboard.
+- Produces a layered project snapshot for downstream tooling.
+- Lists entry points and major dependency flow.
+
+### Interactive architecture explorer
+
+- Renders an SVG architecture graph with clickable components.
+- Shows hover labels and layer metadata for nodes.
+- Opens component details on demand, including classes, functions, imports, dependencies, and reverse dependencies.
+- Supports nested drilldown by following dependency and reverse-dependency buttons.
+- Supports zoom in, zoom out, and reset controls.
+- Filters the graph by layer visibility.
+- Limits the graph by dependency depth from detected entry modules.
+
+### Mermaid and graph output
+
+- Generates Mermaid `graph TD` output for documentation and external rendering.
+- Generates filtered SVG graph output for browser clients.
+- Supports PR coloring when callers provide added and removed component names: additions are green and deletions are red.
+
+### Pull-request impact analysis
+
+- Compares base and head file lists.
+- Identifies changed and removed files.
+- Maps changed files to analyzed modules.
+- Reports directly impacted dependency edges.
+- Produces an architecture review summary with HLD impact, LLD impact, risk, and reviewer guidance.
+
+### Repository refresh and watching
+
+- Tracks repository file state through `RepoWatcher`.
+- Detects when the analyzed repository has changed.
+- Refreshes the analysis snapshot on demand.
+- Exposes watcher status and refresh APIs.
+
+### GitHub integration
+
+- Validates GitHub webhook signatures with `X-Hub-Signature-256`.
+- Accepts pull-request webhook payloads and returns architecture impact data.
+- Posts a real issue-style pull-request comment through the GitHub REST API.
+- Enriches comments with the selected module, layer, dependencies, and reverse dependencies.
+- Returns explicit errors when the token, repository, PR number, or comment data is missing.
+
+## Architecture
+
+```text
+Repository source
+        |
+        v
+architecture_explorer.py  ->  summary, layers, dependency graph, HLD/LLD, SVG/Mermaid
+        |
+        +--> pr_impact.py   ->  changed files, blast radius, review summary
+        |
+        +--> repo_watcher.py -> snapshot state, stale detection, refresh
+        |
+        v
+app.py / Flask
+        |
+        +--> browser dashboard
+        +--> JSON APIs
+        +--> GitHub webhook and PR comment integration
+```
+
+## Project structure
+
+```text
+repo-architecture-explorer/
+├── app.py                         Flask dashboard and API routes
+├── architecture_explorer.py       AST analysis and architecture rendering
+├── pr_impact.py                   Pull-request impact analysis
+├── repo_watcher.py                File-state tracking and refresh
+├── requirements.txt               Runtime and test dependencies
+├── Dockerfile                     Gunicorn container packaging
+├── .env.example                   Environment variable template
+├── examples/                      Integration and API sample templates
+└── tests/test_pr_impact.py        Regression and integration tests
+```
+
+## Local setup
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python app.py
+```
+
+Open the dashboard at <http://localhost:8000/>.
+
+`.env.example` is a configuration template. The local Flask command reads process environment variables; it does not parse a `.env` file automatically. Set variables in the VS Code launch configuration, PowerShell session, or deployment environment before running `python app.py`. Docker can load them directly with `--env-file`.
+
+The service analyzes the directory containing `app.py` by default. To analyze another repository, construct `RepoWatcher` with that repository path or adapt the application configuration before deployment.
+
+## Configuration
+
+Copy [.env.example](.env.example) and set values for the deployment.
+
+| Variable | Required for | Description |
+| --- | --- | --- |
+| `GITHUB_WEBHOOK_SECRET` | Signed webhooks | Secret used to validate `X-Hub-Signature-256`. |
+| `GITHUB_TOKEN` | Real PR comments | GitHub token with permission to write pull-request issue comments. |
+| `GITHUB_REPOSITORY` | Dashboard defaults | Repository in `owner/name` format. The request body can override it. |
+| `PORT` | Container/runtime | Port used by the deployment command. |
+
+Never commit real tokens or webhook secrets. Use a secret manager or CI/CD secret store in deployed environments.
+
+## Dashboard workflows
+
+1. Open the HLD graph.
+2. Select or clear `entry`, `service`, `data`, and `infra` layers.
+3. Optionally enter a maximum dependency depth and apply the filter.
+4. Hover a component to identify it, then click it for details.
+5. Follow dependency or reverse-dependency buttons for nested drilldown.
+6. Enter a repository, pull-request number, and comment to post a real GitHub PR comment for the selected component.
+
+The dashboard uses `/api/graph` to refresh the SVG graph without reloading the page.
+
+## API reference
+
+### `GET /api/summary`
+
+Returns the project name, analyzed modules, layer groups, dependency edges, and watcher status.
+
+### `GET /api/mermaid`
+
+Returns a plain-text Mermaid dependency graph.
+
+### `GET /api/graph`
+
+Returns a JSON object containing filtered SVG.
+
+Query parameters:
+
+- `layers`: comma-separated values from `entry`, `service`, `data`, and `infra`.
+- `depth`: non-negative dependency depth from detected entry modules.
+
+Example:
+
+```text
+GET /api/graph?layers=entry,service&depth=1
+```
+
+### `GET /api/module/<module-name>`
+
+Returns component details, including classes, functions, imports, dependencies, reverse dependencies, and nested detail references. Module paths such as `app/service.py` are accepted.
+
+### `POST /api/pr-comment`
+
+Creates a local structured review record. It does not call GitHub.
+
+```json
+{
+  "module_name": "service.py",
+  "comment": "Please verify the downstream dependency."
+}
+```
+
+### `POST /api/github/pr-comment`
+
+Posts a real comment to the pull request through GitHub's issue-comment API. It requires `GITHUB_TOKEN` and a repository in `owner/name` format.
+
+```json
+{
+  "repository": "owner/repository",
+  "pr_number": 42,
+  "module_name": "service.py",
+  "comment": "Please verify the downstream dependency."
+}
+```
+
+### `GET /api/pr-summary`
+
+Returns a text architecture review summary for the configured sample file comparison used by the dashboard.
+
+### `GET /api/watcher-status`
+
+Returns watcher state, repository path, module count, and last refresh information.
+
+### `GET|POST /api/refresh`
+
+Forces a repository rescan and returns the refreshed project snapshot.
+
+### `POST /api/github/pr-webhook`
+
+Validates a GitHub pull-request webhook and returns the architecture impact report. Send `X-GitHub-Event: pull_request` and a matching `X-Hub-Signature-256` header when `GITHUB_WEBHOOK_SECRET` is configured.
+
+## GitHub pull-request setup
+
+1. Deploy this service at a reachable HTTPS URL.
+2. Configure `GITHUB_WEBHOOK_SECRET` in the service and in the GitHub webhook.
+3. Create a GitHub webhook pointing to `/api/github/pr-webhook`.
+4. Select the `Pull requests` event and JSON content type.
+5. Configure `GITHUB_TOKEN` and `GITHUB_REPOSITORY` for dashboard-originated comments.
+6. Give the token only the repository permission needed to write pull-request comments.
+
+The webhook endpoint validates the signature but does not automatically post a comment. The dashboard or an external automation client can call `/api/github/pr-comment` when a reviewer chooses a component and submits feedback.
+
+## Sample templates
+
+Copyable examples are in [examples](examples):
+
+- [environment.template](examples/environment.template) - deployment configuration checklist.
+- [graph-filter-request.txt](examples/graph-filter-request.txt) - filtered graph request.
+- [github-pr-webhook.json](examples/github-pr-webhook.json) - webhook payload shape for local testing.
+- [github-pr-comment.json](examples/github-pr-comment.json) - selected-component comment request.
+- [github-actions-architecture-review.yml](examples/github-actions-architecture-review.yml) - CI workflow template for calling the webhook.
+
+## Docker
+
+```powershell
+docker build -t repo-architecture-explorer .
+docker run --rm -p 8000:8000 --env-file .env -e PORT=8000 repo-architecture-explorer
+```
+
+## Testing
+
+Run the complete regression suite:
+
+```powershell
+python -m pytest -q
+```
+
+The suite covers AST extraction, layer classification, dependency mapping, HLD-first rendering, SVG PR colors, graph filters, watcher behavior, webhook signature validation, and GitHub comment request construction.
+
+## Current boundaries
+
+- The analyzer currently scans Python source files; JavaScript, Java, and other languages need additional parsers.
+- Layer classification is filename-based and should be treated as an initial architectural heuristic.
+- The current GitHub comment integration posts issue-style PR comments, not line-level review comments.
+- A webhook payload normally needs an external step to resolve exact base/head file lists; the example payload includes those lists for deterministic local testing.
+
+This service is intentionally decoupled from the application repository so it can support developer understanding, architecture documentation, and pull-request review workflows across multiple repositories.

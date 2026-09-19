@@ -1,0 +1,6 @@
+{
+  "repository": "owner/repository",
+  "pr_number": 42,
+  "module_name": "service.py",
+  "comment": "Please verify the downstream dependency before merge."
+}

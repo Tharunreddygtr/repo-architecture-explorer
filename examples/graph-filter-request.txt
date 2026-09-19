@@ -1,0 +1,10 @@
+# Browser/API graph filter examples
+
+# Show entry and service layers, following dependencies one level deep
+GET http://localhost:8000/api/graph?layers=entry,service&depth=1
+
+# Show the complete graph without a depth limit
+GET http://localhost:8000/api/graph
+
+# Equivalent curl command
+curl "http://localhost:8000/api/graph?layers=entry,service&depth=1"

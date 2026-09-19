@@ -1,0 +1,12 @@
+{
+  "action": "opened",
+  "pull_request": {
+    "number": 42,
+    "title": "Update order service",
+    "base": { "ref": "main" },
+    "head": { "ref": "feature/order-service" },
+    "changed_files": ["app/main.py", "app/service.py"]
+  },
+  "base_files": ["app/main.py"],
+  "head_files": ["app/main.py", "app/service.py"]
+}
