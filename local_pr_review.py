@@ -20,6 +20,7 @@ def render_html_report(
         head: str,
         base_files: list[str],
         head_files: list[str],
+    impact_base_files: list[str],
         changed_paths: set[str],
         impact: dict,
         summary: dict,
@@ -33,7 +34,7 @@ def render_html_report(
         removed_files = html.escape(", ".join(impact["removed_files"]) or "none")
         diff_paths = html.escape(", ".join(sorted(changed_paths)) or "none")
         impact_summary = html.escape(str(impact["summary"]))
-        review_summary = html.escape(render_pr_impact_summary(base_files, head_files, summary))
+        review_summary = html.escape(render_pr_impact_summary(impact_base_files, head_files, summary))
 
         return f"""<!doctype html>
 <html lang="en">
@@ -145,7 +146,7 @@ def run(
     if html_output:
         html_output.parent.mkdir(parents=True, exist_ok=True)
         html_output.write_text(
-            render_html_report(base, head, base_files, head_files, changed_paths, impact, summary, artifacts),
+            render_html_report(base, head, base_files, head_files, impact_base_files, changed_paths, impact, summary, artifacts),
             encoding="utf-8",
         )
 
