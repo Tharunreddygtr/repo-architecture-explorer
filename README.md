@@ -281,7 +281,7 @@ python -m pytest -q
 
 ## Local commit PR review
 
-You can test the PR-review capability locally before configuring a GitHub webhook. The command compares complete Git trees, detects modified/added/deleted files, analyzes the selected head commit snapshot, and generates HLD, dependency-impact, and layer diagrams.
+You can test the PR-review capability locally before configuring a GitHub webhook. The command accepts any local Git branch, tag, or commit ref. It compares complete Git trees, detects modified/added/deleted files, analyzes the selected head commit snapshot, and generates HLD, dependency-impact, and layer diagrams.
 
 ```powershell
 python local_pr_review.py <base-commit> <head-commit> --output .\docs\local-pr-review.md
@@ -293,6 +293,13 @@ Example using the repository's published commits:
 
 ```powershell
 python local_pr_review.py 57ba752 d59f4c7 --output .\docs\local-pr-review.md
+```
+
+For a real feature branch after fetching it locally:
+
+```powershell
+git fetch origin main feature/my-change
+python local_pr_review.py origin/main origin/feature/my-change --output .\docs\feature-my-change-review.md
 ```
 
 The command uses the same `analyze_pr_impact`, `build_pr_review_artifacts`, and report rendering capabilities used by the webhook. It does not contact GitHub and does not require a token.
