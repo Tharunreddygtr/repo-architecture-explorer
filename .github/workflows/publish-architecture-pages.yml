@@ -188,6 +188,14 @@ jobs:
               "X-GitHub-Api-Version": "2022-11-28",
           }
 
+          # Use PR comments endpoint (not issues) for PR comments
+          api_url = f"https://api.github.com/repos/{repository}/pulls/{pr_number}/comments"
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "X-GitHub-Api-Version": "2022-11-28",
+          }
+
           try:
               request = Request(api_url, headers=headers)
               with urlopen(request) as response:
@@ -203,5 +211,9 @@ jobs:
                   with urlopen(create):
                       pass
           except Exception as error:
-              print(f"::warning::Could not add architecture report comment: {error}")
+              error_msg = str(error)
+              if "403" in error_msg:
+                  print(f"::warning::PR comment failed (403 Forbidden). Fix: Repository Settings > Actions > General > Workflow permissions > Enable 'Read and write permissions' and 'Allow GitHub Actions to create and approve pull requests'")
+              else:
+                  print(f"::warning::Could not add architecture report comment: {error}")
           PY
