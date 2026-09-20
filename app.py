@@ -201,9 +201,22 @@ HTML_TEMPLATE = """
           '<div><strong>Dependencies</strong><ul class="nested-list">' + (dependencies || '<li class="small">none</li>') + '</ul></div>' +
           '<div><strong>Used by</strong><ul class="nested-list">' + (parents || '<li class="small">none</li>') + '</ul></div>';
         detailsPanel.innerHTML = append ? detailsPanel.innerHTML + '<hr />' + content : content;
+        await expandDownstream(moduleName);
       } catch (error) {
         detailsPanel.innerHTML = '<div class="small">Unable to load details for this module.</div>';
       }
+    }
+
+    async function expandDownstream(moduleName) {
+      const layers = Array.from(document.querySelectorAll('.layer-filter:checked')).map((item) => item.value).join(',');
+      const query = new URLSearchParams({focus: moduleName, depth: '2'});
+      if (layers) query.set('layers', layers);
+      const response = await fetch('/api/graph?' + query.toString());
+      if (!response.ok) return;
+      const data = await response.json();
+      document.querySelector('.diagram-shell').innerHTML = data.svg;
+      svg = document.getElementById('architecture-svg');
+      setScale(currentScale);
     }
 
     document.addEventListener('click', (event) => {
@@ -405,13 +418,14 @@ def api_graph():
   summary, _, _, _ = _analyze_current_repo()
   requested_layers = [item.strip() for item in request.args.get("layers", "").split(",") if item.strip()]
   depth_value = request.args.get("depth", "")
+  focus_module = request.args.get("focus", "").strip() or None
   try:
     max_depth = int(depth_value) if depth_value else None
   except ValueError:
     return jsonify({"error": "depth must be an integer"}), 400
 
-  svg = build_svg_graph(summary, visible_layers=requested_layers or None, max_depth=max_depth)
-  return jsonify({"svg": svg, "layers": requested_layers, "max_depth": max_depth})
+  svg = build_svg_graph(summary, visible_layers=requested_layers or None, max_depth=max_depth, focus_module=focus_module)
+  return jsonify({"svg": svg, "layers": requested_layers, "max_depth": max_depth, "focus_module": focus_module})
 
 
 @app.route("/api/module/<path:module_name>")

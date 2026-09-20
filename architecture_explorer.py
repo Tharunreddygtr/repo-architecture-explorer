@@ -384,6 +384,7 @@ def build_svg_graph(
     view_name: str = "Architecture",
     visible_layers: list[str] | None = None,
     max_depth: int | None = None,
+    focus_module: str | None = None,
 ) -> str:
     modules = summary.get("modules", [])
     layer_order = ["entry", "service", "data", "infra"]
@@ -413,10 +414,18 @@ def build_svg_graph(
             directed_graph[resolved_src].append(resolved_dst)
 
     allowed_nodes: set[str] = set()
-    if max_depth is not None and max_depth >= 0:
+    resolved_focus = module_lookup.get(focus_module or "")
+    if resolved_focus:
+        start_nodes = [resolved_focus]
+        max_depth = 2 if max_depth is None else max_depth
+    elif max_depth is not None and max_depth >= 0:
         start_nodes = [name for name in all_modules if layer_for(name) == "entry"]
         if not start_nodes:
             start_nodes = all_modules[:1]
+    else:
+        start_nodes = []
+
+    if start_nodes:
         queue: list[tuple[str, int]] = [(node, 0) for node in start_nodes]
         visited: set[str] = set()
         while queue:
@@ -468,11 +477,11 @@ def build_svg_graph(
             lines.append(f"<g class='node' data-module='{name}' data-layer='{layer}' tabindex='0' role='button'><title>{name}</title><rect x='{x - 90}' y='{y - 30}' width='{node_w}' height='{node_h}' rx='10' style='fill:{fill};stroke:#60a5fa' class='node'/><text x='{x}' y='{y}' class='node-text'>{name}</text></g>")
 
     for src, dst in summary.get("dependency_edges", []):
-        if src not in allowed_nodes or dst not in allowed_nodes:
-            continue
         resolved_src = module_lookup.get(src)
         resolved_dst = module_lookup.get(dst)
         if not resolved_src or not resolved_dst:
+            continue
+        if resolved_src not in allowed_nodes or resolved_dst not in allowed_nodes:
             continue
         src_layer = layer_for(resolved_src)
         dst_layer = layer_for(resolved_dst)

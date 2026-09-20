@@ -171,11 +171,18 @@ Query parameters:
 
 - `layers`: comma-separated values from `entry`, `service`, `data`, and `infra`.
 - `depth`: non-negative dependency depth from detected entry modules.
+- `focus`: optional module name. When present, the selected module becomes the graph root and downstream dependencies are rendered automatically; the default focused depth is `2`.
 
 Example:
 
 ```text
 GET /api/graph?layers=entry,service&depth=1
+```
+
+When a user clicks a node in the dashboard, it uses the focused form automatically:
+
+```text
+GET /api/graph?focus=app.py&depth=2
 ```
 
 ### `GET /api/module/<module-name>`

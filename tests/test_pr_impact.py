@@ -348,6 +348,26 @@ def test_svg_graph_supports_layer_and_depth_filters():
     assert "repository.py" not in svg
 
 
+def test_svg_graph_focus_expands_downstream_components():
+    summary = {
+        "project_name": "demo_app",
+        "modules": [
+            {"name": "main.py", "relative_path": "app/main.py", "classes": [], "functions": [], "imports": []},
+            {"name": "service.py", "relative_path": "app/service.py", "classes": [], "functions": [], "imports": []},
+            {"name": "repository.py", "relative_path": "app/repository.py", "classes": [], "functions": [], "imports": []},
+            {"name": "unrelated.py", "relative_path": "app/unrelated.py", "classes": [], "functions": [], "imports": []},
+        ],
+        "dependency_edges": [("main.py", "service.py"), ("service.py", "repository.py")],
+    }
+
+    svg = build_svg_graph(summary, focus_module="service.py")
+
+    assert "service.py" in svg
+    assert "repository.py" in svg
+    assert "main.py" not in svg
+    assert "unrelated.py" not in svg
+
+
 def test_pr_comment_generation_for_selected_component():
     client = app.test_client()
     response = client.post(
