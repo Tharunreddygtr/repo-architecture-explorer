@@ -177,7 +177,7 @@ The `Publish architecture reports to Pages` workflow publishes each pull request
 https://tharunreddygtr.github.io/repo-architecture-explorer/pr/123/
 ```
 
-Enable **Settings > Pages > Build and deployment > Source: Deploy from a branch**, select the `gh-pages` branch, and use the repository Pages URL. The workflow triggers by PR number on opened, reopened, and synchronized pull requests. It also supports manual runs with `pr_number`, `base`, and `head` inputs. The root Pages URL lists all published PR reports.
+Enable **Settings > Pages > Build and deployment > Source: Deploy from a branch**, select the `gh-pages` branch, and use the repository Pages URL. The root URL shows the full architecture report generated from `main`; individual PR reports are available under `/pr/<PR_NUMBER>/`, and the report directory is available at `/prs.html`. The workflow triggers by PR number on opened, reopened, and synchronized pull requests. It also supports manual runs with `pr_number`, `base`, and `head` inputs.
 
 ## API reference
 
