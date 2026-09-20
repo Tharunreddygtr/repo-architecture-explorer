@@ -1,13 +1,13 @@
-# Local Architecture PR Review: 91f2c9da7829354babd22bfb1c1445b75a777cb7 -> a0295c156778159c4e169aaa9f609dfa7e2b21ff
+# Local Architecture PR Review: c2db25efdebdd15f7aba5c8a18417cd918714616 -> a0295c156778159c4e169aaa9f609dfa7e2b21ff
 
-- Base commit: `91f2c9da7829354babd22bfb1c1445b75a777cb7`
+- Base commit: `c2db25efdebdd15f7aba5c8a18417cd918714616`
 - Head commit: `a0295c156778159c4e169aaa9f609dfa7e2b21ff`
 - Base tree files: 24
 - Head tree files: 26
-- Git diff paths: .github/workflows/publish-architecture-pages.yml, examples/capacity_service.py, tests/test_capacity_service.py
-- Changed files: .github/workflows/publish-architecture-pages.yml, examples/capacity_service.py, tests/test_capacity_service.py
+- Git diff paths: .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, tests/test_capacity_service.py
+- Changed files: .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, tests/test_capacity_service.py
 - Removed files: none
-- Impact summary: {'total_changed': 3, 'total_removed': 0, 'total_impacted': 3}
+- Impact summary: {'total_changed': 4, 'total_removed': 0, 'total_impacted': 3}
 
 ## HLD Diagram
 
@@ -57,7 +57,7 @@ graph LR
 # Architecture Review Summary
 
 ## HLD Impact
-- Changed files: .github/workflows/publish-architecture-pages.yml, examples/capacity_service.py, tests/test_capacity_service.py
+- Changed files: .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, tests/test_capacity_service.py
 - Components affected: capacity_service.py, test_capacity_service.py, test_capacity_service.py -> capacity_service.py
 - Risk: High
 - Architectural note: review dependency boundaries and service entry points before merge.
