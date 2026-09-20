@@ -1,7 +1,7 @@
-# Local Architecture PR Review: c2db25efdebdd15f7aba5c8a18417cd918714616 -> 1ea3ca9bb216834ac86dd6f481d52c227ae1cbc0
+# Local Architecture PR Review: 1ea3ca9bb216834ac86dd6f481d52c227ae1cbc0 -> 2cb30133a7f0e58dc220d921c48e122d7966aade
 
-- Base commit: `c2db25efdebdd15f7aba5c8a18417cd918714616`
-- Head commit: `1ea3ca9bb216834ac86dd6f481d52c227ae1cbc0`
+- Base commit: `1ea3ca9bb216834ac86dd6f481d52c227ae1cbc0`
+- Head commit: `2cb30133a7f0e58dc220d921c48e122d7966aade`
 - Base tree files: 24
 - Head tree files: 24
 - Git diff paths: .github/workflows/publish-architecture-pages.yml
