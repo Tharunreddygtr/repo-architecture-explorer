@@ -154,13 +154,18 @@ jobs:
           git -C /tmp/pages-site commit -m "Publish architecture report" || true
           git -C /tmp/pages-site push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:gh-pages
 
+      comment:
+    needs: publish
+    if: needs.publish.outputs.pr_number != ''
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
       - name: Add report link to pull request
-        if: steps.commits.outputs.pr_number != ''
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ steps.commits.outputs.pr_number }}
+          PR_NUMBER: ${{ needs.publish.outputs.pr_number }}
         run: |
           python - <<'PY'
           import json
@@ -182,21 +187,20 @@ jobs:
               "X-GitHub-Api-Version": "2022-11-28",
           }
 
-            try:
+          try:
               request = Request(api_url, headers=headers)
               with urlopen(request) as response:
-                comments = json.load(response)
+                  comments = json.load(response)
               existing = next((comment for comment in comments if marker in comment.get("body", "")), None)
               if existing:
-                update_url = existing["url"]
-                update = Request(update_url, data=json.dumps({"body": body}).encode(), headers=headers, method="PATCH")
-                with urlopen(update):
-                  pass
+                  update_url = existing["url"]
+                  update = Request(update_url, data=json.dumps({"body": body}).encode(), headers=headers, method="PATCH")
+                  with urlopen(update):
+                      pass
               else:
-                create = Request(api_url, data=json.dumps({"body": body}).encode(), headers=headers, method="POST")
-                with urlopen(create):
-                  pass
-            except HTTPError as error:
-              detail = error.read().decode("utf-8", errors="replace")
-              print(f"::warning::Could not add architecture report comment ({error.code}): {detail}")
+                  create = Request(api_url, data=json.dumps({"body": body}).encode(), headers=headers, method="POST")
+                  with urlopen(create):
+                      pass
+          except Exception as error:
+              print(f"::warning::Could not add architecture report comment: {error}")
           PY
