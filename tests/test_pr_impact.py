@@ -9,6 +9,7 @@ from architecture_explorer import analyze_project, build_mermaid_diagram, build_
 from pr_impact import analyze_pr_impact, render_pr_impact_summary
 from repo_watcher import RepoWatcher
 from app import app
+from local_pr_review import render_html_report
 
 
 def test_build_project_snapshot_groups_modules_by_layer(tmp_path):
@@ -193,6 +194,30 @@ def test_pr_review_artifacts_include_multiple_diagrams():
     assert {"hld_svg", "dependency_mermaid", "layer_mermaid", "impact_mermaid", "hld_markdown", "lld_markdown"} <= set(artifacts)
     assert "PR HLD View" in artifacts["hld_svg"]
     assert "service.py" in artifacts["impact_mermaid"]
+
+
+def test_html_report_inlines_hld_and_mermaid_artifacts():
+    artifacts = {
+        "hld_svg": "<svg id='architecture-svg'></svg>",
+        "impact_mermaid": "graph TD\n  A-->B",
+        "layer_mermaid": "graph TD\n  A-->B",
+        "dependency_mermaid": "graph TD\n  A-->B",
+    }
+    html_report = render_html_report(
+        "base",
+        "head",
+        ["app.py"],
+        ["app.py", "service.py"],
+        {"service.py"},
+        {"changed_files": ["service.py"], "removed_files": [], "summary": {"total_changed": 1, "total_removed": 0, "total_impacted": 1}},
+        {"modules": [], "dependency_edges": []},
+        artifacts,
+    )
+
+    assert "<!doctype html>" in html_report
+    assert "id='architecture-svg'" in html_report
+    assert "mermaid@10" in html_report
+    assert "service.py" in html_report
 
 
 def test_webhook_persists_diagram_first_review(monkeypatch):
