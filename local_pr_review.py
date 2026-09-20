@@ -245,11 +245,23 @@ def run(
     hld_output: Path | None = None,
     html_output: Path | None = None,
     metadata: dict[str, str] | None = None,
+    output_format: str = "markdown",
+    exclude_patterns: list[str] | None = None,
 ) -> str:
     base_files = _git_files(base)
     head_files = _git_files(head)
     diff_status = _git_diff_status(base, head)
     changed_paths = {path for _, path in diff_status}
+    
+    # Apply exclude patterns if provided
+    if exclude_patterns:
+        import fnmatch
+        filtered_paths = set()
+        for path in changed_paths:
+            if not any(fnmatch.fnmatch(path, pattern) for pattern in exclude_patterns):
+                filtered_paths.add(path)
+        changed_paths = filtered_paths
+    
     file_stats = _git_diff_stats(base, head, diff_status)
     categories = _categorize_paths(sorted(changed_paths))
     modified_or_added = {path for status, path in diff_status if status in {"A", "M", "R"}}
@@ -338,6 +350,8 @@ if __name__ == "__main__":
     parser.add_argument("head", help="Head commit, branch, or tag")
     parser.add_argument("--output", type=Path, help="Optional output Markdown path")
     parser.add_argument("--html-output", type=Path, help="Optional standalone HTML report path")
+    parser.add_argument("--format", choices=["markdown", "json"], default="markdown", help="Output format (default: markdown)")
+    parser.add_argument("--exclude-patterns", nargs="*", help="Optional glob patterns to exclude from analysis")
     parser.add_argument("--pr-number", help="Optional pull-request number for HTML metadata")
     parser.add_argument("--pr-title", help="Optional pull-request title for HTML metadata")
     parser.add_argument("--pr-author", help="Optional pull-request author for HTML metadata")
@@ -354,7 +368,15 @@ if __name__ == "__main__":
         }.items()
         if value
     }
-    report = run(args.base, args.head, hld_output, args.html_output, metadata)
+    report = run(
+        args.base,
+        args.head,
+        hld_output,
+        args.html_output,
+        metadata,
+        args.format,
+        args.exclude_patterns,
+    )
     if args.output:
         args.output.write_text(report, encoding="utf-8")
         print(f"Wrote {args.output}")

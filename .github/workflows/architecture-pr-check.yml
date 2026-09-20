@@ -1,0 +1,87 @@
+name: Architecture PR Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  architecture-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install analyzer dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Generate architecture report
+        run: |
+          python local_pr_review.py \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}" \
+            --html-output artifacts/changes.html \
+            --pr-number "${{ github.event.pull_request.number }}" \
+            --pr-title "${{ github.event.pull_request.title }}" \
+            --pr-author "${{ github.event.pull_request.user.login }}" \
+            --pr-url "${{ github.event.pull_request.html_url }}"
+
+      - name: Upload architecture report
+        uses: actions/upload-artifact@v5
+        with:
+          name: architecture-report
+          path: artifacts/
+          if-no-files-found: error
+
+      - name: Post architecture report link
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            const artifactPath = path.join(process.env.GITHUB_WORKSPACE, 'artifacts', 'changes.html');
+            if (!fs.existsSync(artifactPath)) {
+              console.log('No architecture report found');
+              return;
+            }
+            
+            const reportUrl = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr/${{ github.event.number }}/`;
+            const marker = "<!-- architecture-report-link -->";
+            const body = `${marker}\n### Architecture Report\n[Open the visual architecture report for this PR](${reportUrl})`;
+            
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number
+            });
+            
+            const existing = comments.find(c => c.body.includes('architecture-report-link'));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: body
+              });
+              console.log('Updated existing architecture report comment');
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: body
+              });
+              console.log('Created new architecture report comment');
+            }
