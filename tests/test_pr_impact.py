@@ -9,7 +9,7 @@ from architecture_explorer import analyze_project, build_mermaid_diagram, build_
 from pr_impact import analyze_pr_impact, render_pr_impact_summary
 from repo_watcher import RepoWatcher
 from app import app
-from local_pr_review import render_html_report
+from local_pr_review import _categorize_paths, _changed_python_symbols, render_html_report
 
 
 def test_build_project_snapshot_groups_modules_by_layer(tmp_path):
@@ -241,6 +241,45 @@ def test_html_report_preserves_modified_file_summary():
     )
 
     assert "- Changed files: README.md" in html_report
+
+
+def test_change_report_categorizes_paths_and_detects_python_symbols(tmp_path):
+    base_root = tmp_path / "base"
+    head_root = tmp_path / "head"
+    (base_root / "app").mkdir(parents=True)
+    (head_root / "app").mkdir(parents=True)
+    (base_root / "app" / "service.py").write_text("class CapacityService:\n    pass\n", encoding="utf-8")
+    (head_root / "app" / "service.py").write_text("class CapacityService:\n    def calculate(self):\n        return 1\n\nclass NewService:\n    pass\n", encoding="utf-8")
+
+    symbols = _changed_python_symbols(base_root, head_root, ["app/service.py"])
+
+    assert {item["name"] for item in symbols} == {"CapacityService", "calculate", "NewService"}
+    assert any(item["change"] == "modified" for item in symbols)
+    assert any(item["change"] == "added" for item in symbols)
+    assert _categorize_paths(["api/routes.py", "db/migration.sql", "config.yml", "tests/test_api.py"])["API"] == ["api/routes.py"]
+
+
+def test_html_report_renders_change_analysis_sections():
+    html_report = render_html_report(
+        "base",
+        "head",
+        [],
+        [],
+        [],
+        {"api/routes.py"},
+        {"changed_files": ["api/routes.py"], "removed_files": [], "summary": {"total_changed": 1, "total_removed": 0, "total_impacted": 0}},
+        {"modules": [], "dependency_edges": []},
+        {"hld_svg": "<svg></svg>", "impact_mermaid": "graph TD", "layer_mermaid": "graph LR", "dependency_mermaid": "graph TD"},
+        [{"path": "api/routes.py", "status": "M", "additions": 4, "deletions": 2}],
+        {"API": ["api/routes.py"]},
+        [{"path": "api/routes.py", "kind": "function", "name": "list_routes", "change": "modified"}],
+    )
+
+    assert "Files Changed" in html_report
+    assert "+4" in html_report
+    assert "Change Categories" in html_report
+    assert "list_routes" in html_report
+    assert "report-search" in html_report
 
 
 def test_webhook_persists_diagram_first_review(monkeypatch):

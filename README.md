@@ -155,11 +155,13 @@ python self_analysis.py > docs/self-analysis.md
 
 ## Generate an HTML PR report
 
-The local PR analyzer can generate a browser-ready report containing the inline HLD SVG, Mermaid impact diagrams, and architecture review summary:
+The local PR analyzer can generate a browser-ready report containing the inline HLD SVG, Mermaid impact diagrams, architecture review summary, file-level line counts, API/database/config/test categories, changed Python classes and functions, and a client-side search filter:
 
 ```powershell
 python local_pr_review.py <base> <head> --html-output docs/changes.html
 ```
+
+Optional PR metadata can be shown in the report with `--pr-number`, `--pr-title`, `--pr-author`, and `--pr-url`. The GitHub Actions workflows pass these values automatically.
 
 The HTML report can be opened directly from the filesystem. Mermaid diagrams use the Mermaid browser bundle from jsDelivr; the HLD SVG is embedded in the page. Markdown output remains available with `--output`.
 

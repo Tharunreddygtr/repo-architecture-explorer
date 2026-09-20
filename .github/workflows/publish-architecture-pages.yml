@@ -91,6 +91,9 @@ jobs:
           BASE: ${{ steps.commits.outputs.base }}
           HEAD: ${{ steps.commits.outputs.head }}
           PR_NUMBER: ${{ steps.commits.outputs.pr_number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
         run: |
           set -euo pipefail
           if [ -n "$PR_NUMBER" ]; then
@@ -101,7 +104,11 @@ jobs:
           mkdir -p "$report_dir"
           python local_pr_review.py "$BASE" "$HEAD" \
             --output "$report_dir/changes.md" \
-            --html-output "$report_dir/index.html"
+            --html-output "$report_dir/index.html" \
+            --pr-number "$PR_NUMBER" \
+            --pr-title "$PR_TITLE" \
+            --pr-author "$PR_AUTHOR" \
+            --pr-url "$PR_URL"
 
       - name: Update gh-pages branch
         env:
