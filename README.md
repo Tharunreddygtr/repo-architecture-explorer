@@ -127,6 +127,7 @@ Copy [.env.example](.env.example) and set values for the deployment.
 | `GITHUB_WEBHOOK_SECRET` | Signed webhooks | Secret used to validate `X-Hub-Signature-256`. |
 | `GITHUB_TOKEN` | Real PR comments | GitHub token with permission to write pull-request issue comments. |
 | `GITHUB_REPOSITORY` | Dashboard defaults | Repository in `owner/name` format. The request body can override it. |
+| `AUTO_COMMENT_ON_PR` | Automatic PR diagrams | Set to `true` to post Mermaid diagrams and HLD/LLD text automatically on PR events. |
 | `PORT` | Container/runtime | Port used by the deployment command. |
 
 Never commit real tokens or webhook secrets. Use a secret manager or CI/CD secret store in deployed environments.
@@ -234,7 +235,7 @@ Returns the latest automatically generated pull-request review bundle, including
 5. Configure `GITHUB_TOKEN` and `GITHUB_REPOSITORY` so the service can fetch PR file names and support dashboard-originated comments.
 6. Give the token only the repository permissions needed to read pull requests and write pull-request comments.
 
-The webhook automatically generates the architecture artifacts and makes them visible in the dashboard. It does not automatically post a GitHub comment; the dashboard or an external automation client can call `/api/github/pr-comment` when a reviewer chooses a component and submits feedback.
+The webhook automatically generates the architecture artifacts and makes them visible in the dashboard. Set `AUTO_COMMENT_ON_PR=true` to post a GitHub PR comment containing Mermaid dependency, layer, and impact diagrams plus HLD/LLD review text. The SVG HLD remains available in the dashboard and generated report because GitHub comments cannot safely embed a local repository SVG asset.
 
 With GitHub CLI authenticated, the repository webhook can be created from PowerShell:
 

@@ -24,6 +24,7 @@ app.config["WATCHER"] = RepoWatcher(Path(__file__).resolve().parent)
 app.config["GITHUB_WEBHOOK_SECRET"] = os.getenv("GITHUB_WEBHOOK_SECRET")
 app.config["GITHUB_TOKEN"] = os.getenv("GITHUB_TOKEN")
 app.config["GITHUB_REPOSITORY"] = os.getenv("GITHUB_REPOSITORY")
+app.config["AUTO_COMMENT_ON_PR"] = os.getenv("AUTO_COMMENT_ON_PR", "false").lower() == "true"
 app.config["LATEST_PR_REVIEW"] = None
 
 HTML_TEMPLATE = """
@@ -321,6 +322,44 @@ def _fetch_pr_file_changes(repository: str, pr_number: int) -> tuple[list[str], 
     return changed, added, removed
 
 
+def _render_github_pr_review_comment(review: dict) -> str:
+    artifacts = review["artifacts"]
+    return "\n".join([
+        "<!-- repo-architecture-explorer:architecture-review -->",
+        "## Architecture Explorer Review",
+        "",
+        f"**PR:** #{review.get('pr_number')}  ",
+        f"**Changed files:** {len(review.get('changed_files', []))}  ",
+        f"**Risk:** {review.get('summary', {}).get('risk', 'Review required')}",
+        "",
+        "### Dependency Impact",
+        "",
+        "```mermaid",
+        artifacts["impact_mermaid"],
+        "```",
+        "",
+        "### Layer View",
+        "",
+        "```mermaid",
+        artifacts["layer_mermaid"],
+        "```",
+        "",
+        "### Repository Dependencies",
+        "",
+        "```mermaid",
+        artifacts["dependency_mermaid"],
+        "```",
+        "",
+        "### HLD / LLD Review",
+        "",
+        artifacts["hld_markdown"],
+        "",
+        artifacts["lld_markdown"],
+        "",
+        "Generated automatically by Repo Architecture Explorer.",
+    ])
+
+
 @app.route("/")
 def index():
     summary, payload, snapshot, refresh_status = _analyze_current_repo()
@@ -552,6 +591,19 @@ def api_github_pr_webhook():
       "artifacts": artifacts,
     }
     app.config["LATEST_PR_REVIEW"] = review
+
+    auto_comment = False
+    comment_error = None
+    if app.config.get("AUTO_COMMENT_ON_PR") and repository and pr_number:
+      comment_result, comment_status = _post_github_issue_comment(
+        repository,
+        int(pr_number),
+        _render_github_pr_review_comment(review),
+      )
+      auto_comment = comment_status < 400
+      if not auto_comment:
+        comment_error = comment_result.get("error", "GitHub PR comment failed")
+    review["auto_comment"] = {"posted": auto_comment, "error": comment_error}
 
     return jsonify(review)
 

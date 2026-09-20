@@ -224,6 +224,47 @@ def test_webhook_persists_diagram_first_review(monkeypatch):
     assert stored.get_json()["pr_number"] == 44
 
 
+def test_webhook_can_post_diagram_review_to_github(monkeypatch):
+    client = app.test_client()
+    monkeypatch.setattr(
+        "app._fetch_pr_file_changes",
+        lambda repository, pr_number: (["app.py"], ["app.py"], []),
+    )
+    posted = {}
+
+    def fake_comment(repository, pr_number, comment):
+        posted["repository"] = repository
+        posted["pr_number"] = pr_number
+        posted["comment"] = comment
+        return {"id": 123}, 201
+
+    monkeypatch.setattr("app._post_github_issue_comment", fake_comment)
+    app.config["GITHUB_WEBHOOK_SECRET"] = None
+    app.config["AUTO_COMMENT_ON_PR"] = True
+
+    try:
+        response = client.post(
+            "/api/github/pr-webhook",
+            json={
+                "action": "opened",
+                "repository": {"full_name": "example/repo"},
+                "pull_request": {"number": 45, "title": "Post architecture review", "changed_files": 1},
+                "base_files": [],
+                "head_files": ["app.py"],
+            },
+        )
+    finally:
+        app.config["AUTO_COMMENT_ON_PR"] = False
+
+    data = response.get_json()
+    assert response.status_code == 200
+    assert data["auto_comment"]["posted"] is True
+    assert posted["repository"] == "example/repo"
+    assert posted["pr_number"] == 45
+    assert "```mermaid" in posted["comment"]
+    assert "HLD / LLD Review" in posted["comment"]
+
+
 def test_github_webhook_secret_can_be_loaded_from_environment(monkeypatch):
     monkeypatch.setenv("GITHUB_WEBHOOK_SECRET", "env-secret")
     app.config["GITHUB_WEBHOOK_SECRET"] = None
