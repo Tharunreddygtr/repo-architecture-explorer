@@ -1,13 +1,13 @@
-# Local Architecture PR Review: 71aa279b7cd8900ad5cd6c74ec609641dfcfedca -> 91f2c9da7829354babd22bfb1c1445b75a777cb7
+# Local Architecture PR Review: 91f2c9da7829354babd22bfb1c1445b75a777cb7 -> c2db25efdebdd15f7aba5c8a18417cd918714616
 
-- Base commit: `71aa279b7cd8900ad5cd6c74ec609641dfcfedca`
-- Head commit: `91f2c9da7829354babd22bfb1c1445b75a777cb7`
+- Base commit: `91f2c9da7829354babd22bfb1c1445b75a777cb7`
+- Head commit: `c2db25efdebdd15f7aba5c8a18417cd918714616`
 - Base tree files: 24
 - Head tree files: 24
-- Git diff paths: .github/workflows/publish-architecture-pages.yml
-- Changed files: .github/workflows/publish-architecture-pages.yml
+- Git diff paths: .github/workflows/publish-architecture-pages.yml, README.md
+- Changed files: .github/workflows/publish-architecture-pages.yml, README.md
 - Removed files: none
-- Impact summary: {'total_changed': 1, 'total_removed': 0, 'total_impacted': 0}
+- Impact summary: {'total_changed': 2, 'total_removed': 0, 'total_impacted': 0}
 
 ## HLD Diagram
 
@@ -51,7 +51,7 @@ graph LR
 # Architecture Review Summary
 
 ## HLD Impact
-- Changed files: .github/workflows/publish-architecture-pages.yml
+- Changed files: .github/workflows/publish-architecture-pages.yml, README.md
 - Components affected: no direct module impact detected
 - Risk: Medium
 - Architectural note: review dependency boundaries and service entry points before merge.
