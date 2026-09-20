@@ -154,7 +154,7 @@ jobs:
           git -C /tmp/pages-site commit -m "Publish architecture report" || true
           git -C /tmp/pages-site push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:gh-pages
 
-      comment:
+  comment:
     needs: publish
     if: needs.publish.outputs.pr_number != ''
     runs-on: ubuntu-latest
