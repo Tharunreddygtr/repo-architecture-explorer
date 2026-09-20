@@ -167,11 +167,15 @@ GitHub Actions can run the same command for every pull request and upload `chang
 
 On a pull request, open the workflow run and download the `pr-architecture-report` artifact to inspect the generated `changes.html` report.
 
-## Publish the report to GitHub Pages
+## Publish per-PR reports to GitHub Pages
 
-The `Publish architecture report to Pages` workflow publishes the latest report at the repository's GitHub Pages URL whenever `main` changes. Enable **Settings > Pages > Build and deployment > Source: GitHub Actions** once, then open the `page_url` shown in the workflow run's deployment environment.
+The `Publish architecture reports to Pages` workflow publishes each pull request at a stable path, so reports do not overwrite one another:
 
-For a manual report, run the workflow from the Actions tab and optionally provide `base` and `head` commit, branch, or tag values. Pull requests continue to receive the downloadable artifact because deploying untrusted pull-request code directly to the shared Pages site would overwrite the published report.
+```text
+https://tharunreddygtr.github.io/repo-architecture-explorer/pr/123/
+```
+
+Enable **Settings > Pages > Build and deployment > Source: Deploy from a branch**, select the `gh-pages` branch, and use the repository Pages URL. The workflow triggers by PR number on opened, reopened, and synchronized pull requests. It also supports manual runs with `pr_number`, `base`, and `head` inputs. The root Pages URL lists all published PR reports.
 
 ## API reference
 
