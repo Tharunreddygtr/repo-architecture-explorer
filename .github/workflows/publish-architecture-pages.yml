@@ -141,9 +141,9 @@ jobs:
           if report_root.exists():
               reports = sorted(report_root.glob('*/index.html'), key=lambda item: int(item.parent.name))
               links = [f'<li><a href="pr/{item.parent.name}/">PR #{item.parent.name}</a></li>' for item in reports]
-          if links or not (root / 'index.html').exists():
+            if links:
               index = '<!doctype html><meta charset="utf-8"><title>Architecture PR Reports</title><h1>Architecture PR Reports</h1><ul>' + ''.join(links) + '</ul>'
-              (root / 'index.html').write_text(index, encoding='utf-8')
+              (root / 'prs.html').write_text(index, encoding='utf-8')
           PY
 
           git -C /tmp/pages-site config user.name github-actions[bot]
