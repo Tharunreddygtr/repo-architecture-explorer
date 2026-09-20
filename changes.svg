@@ -1,0 +1,25 @@
+<svg id='architecture-svg' xmlns='http://www.w3.org/2000/svg' width='1200' height='790' viewBox='0 0 1200 790' aria-label='Architecture diagram'>
+<defs><style>.edge{stroke:#60a5fa;stroke-width:2;fill:none;stroke-linecap:round}.node{cursor:pointer;stroke-width:2;rx:12}.node:hover{opacity:0.9}.node-text{font: 14px Arial, sans-serif; fill:#e2e8f0; text-anchor:middle; dominant-baseline:middle}</style></defs>
+<text x='20' y='32' fill='#cbd5e1' font-size='18' font-family='Arial'>PR HLD View</text>
+<g class='node' data-module='app.py' data-layer='entry' tabindex='0' role='button'><title>app.py</title><rect x='130' y='60' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='220' y='90' class='node-text'>app.py</text></g>
+<g class='node' data-module='repo_watcher.py' data-layer='data' tabindex='0' role='button'><title>repo_watcher.py</title><rect x='730' y='60' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='820' y='90' class='node-text'>repo_watcher.py</text></g>
+<g class='node' data-module='architecture_explorer.py' data-layer='infra' tabindex='0' role='button'><title>architecture_explorer.py</title><rect x='950' y='60' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='90' class='node-text'>architecture_explorer.py</text></g>
+<g class='node' data-module='local_pr_review.py' data-layer='infra' tabindex='0' role='button'><title>local_pr_review.py</title><rect x='950' y='170' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='200' class='node-text'>local_pr_review.py</text></g>
+<g class='node' data-module='pr_impact.py' data-layer='infra' tabindex='0' role='button'><title>pr_impact.py</title><rect x='950' y='280' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='310' class='node-text'>pr_impact.py</text></g>
+<g class='node' data-module='self_analysis.py' data-layer='infra' tabindex='0' role='button'><title>self_analysis.py</title><rect x='950' y='390' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='420' class='node-text'>self_analysis.py</text></g>
+<g class='node' data-module='test_architecture_explorer.py' data-layer='infra' tabindex='0' role='button'><title>test_architecture_explorer.py</title><rect x='950' y='500' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='530' class='node-text'>test_architecture_explorer.py</text></g>
+<g class='node' data-module='test_pr_impact.py' data-layer='infra' tabindex='0' role='button'><title>test_pr_impact.py</title><rect x='950' y='610' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='640' class='node-text'>test_pr_impact.py</text></g>
+<line class='edge' x1='230' y1='90' x2='1030' y2='90'/>
+<line class='edge' x1='230' y1='90' x2='1030' y2='310'/>
+<line class='edge' x1='230' y1='90' x2='810' y2='90'/>
+<line class='edge' x1='1050' y1='200' x2='1030' y2='90'/>
+<line class='edge' x1='1050' y1='200' x2='1030' y2='310'/>
+<line class='edge' x1='830' y1='90' x2='1030' y2='90'/>
+<line class='edge' x1='1050' y1='420' x2='1030' y2='90'/>
+<line class='edge' x1='1050' y1='530' x2='1030' y2='90'/>
+<line class='edge' x1='1050' y1='640' x2='1030' y2='90'/>
+<line class='edge' x1='1050' y1='640' x2='1030' y2='310'/>
+<line class='edge' x1='1050' y1='640' x2='810' y2='90'/>
+<line class='edge' x1='1050' y1='640' x2='210' y2='90'/>
+<line class='edge' x1='1050' y1='640' x2='1030' y2='200'/>
+</svg>
