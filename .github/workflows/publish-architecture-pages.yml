@@ -160,6 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+    continue-on-error: true
     steps:
       - name: Add report link to pull request
         env:
