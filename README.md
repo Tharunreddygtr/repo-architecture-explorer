@@ -165,6 +165,8 @@ The HTML report can be opened directly from the filesystem. Mermaid diagrams use
 
 GitHub Actions can run the same command for every pull request and upload `changes.html` as a downloadable workflow artifact.
 
+On a pull request, open the workflow run and download the `pr-architecture-report` artifact to inspect the generated `changes.html` report.
+
 ## API reference
 
 ### `GET /api/summary`
