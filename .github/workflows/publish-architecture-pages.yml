@@ -113,6 +113,7 @@ jobs:
       - name: Update gh-pages branch
         env:
           PR_NUMBER: ${{ steps.commits.outputs.pr_number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           if git ls-remote --exit-code origin refs/heads/gh-pages >/dev/null 2>&1; then
@@ -122,6 +123,7 @@ jobs:
             mkdir /tmp/pages-site
             git -C /tmp/pages-site init
             git -C /tmp/pages-site checkout --orphan gh-pages
+            git -C /tmp/pages-site remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           fi
 
           if [ -n "$PR_NUMBER" ]; then
@@ -148,4 +150,4 @@ jobs:
           git -C /tmp/pages-site config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git -C /tmp/pages-site add .
           git -C /tmp/pages-site commit -m "Publish architecture report" || true
-          git -C /tmp/pages-site push origin HEAD:gh-pages
+          git -C /tmp/pages-site push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:gh-pages
