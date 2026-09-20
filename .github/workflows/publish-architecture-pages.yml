@@ -113,6 +113,7 @@ jobs:
       - name: Update gh-pages branch
         env:
           PR_NUMBER: ${{ steps.commits.outputs.pr_number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           if git ls-remote --exit-code origin refs/heads/gh-pages >/dev/null 2>&1; then
@@ -122,6 +123,7 @@ jobs:
             mkdir /tmp/pages-site
             git -C /tmp/pages-site init
             git -C /tmp/pages-site checkout --orphan gh-pages
+            git -C /tmp/pages-site remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           fi
 
           if [ -n "$PR_NUMBER" ]; then
