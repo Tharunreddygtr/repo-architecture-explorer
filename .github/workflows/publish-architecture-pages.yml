@@ -150,4 +150,4 @@ jobs:
           git -C /tmp/pages-site config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git -C /tmp/pages-site add .
           git -C /tmp/pages-site commit -m "Publish architecture report" || true
-          git -C /tmp/pages-site push origin HEAD:gh-pages
+          git -C /tmp/pages-site push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:gh-pages
