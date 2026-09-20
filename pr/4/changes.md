@@ -1,13 +1,13 @@
-# Local Architecture PR Review: c2db25efdebdd15f7aba5c8a18417cd918714616 -> a0295c156778159c4e169aaa9f609dfa7e2b21ff
+# Local Architecture PR Review: 7b7b557043b940185c405fdfff7cf346815aed10 -> a0295c156778159c4e169aaa9f609dfa7e2b21ff
 
-- Base commit: `c2db25efdebdd15f7aba5c8a18417cd918714616`
+- Base commit: `7b7b557043b940185c405fdfff7cf346815aed10`
 - Head commit: `a0295c156778159c4e169aaa9f609dfa7e2b21ff`
-- Base tree files: 24
+- Base tree files: 26
 - Head tree files: 26
-- Git diff paths: .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, tests/test_capacity_service.py
-- Changed files: .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, tests/test_capacity_service.py
-- Removed files: none
-- Impact summary: {'total_changed': 4, 'total_removed': 0, 'total_impacted': 3}
+- Git diff paths: .github/workflows/architecture-pr-check.yml, .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, generate_architecture_md.py, local_pr_review.py, tests/test_capacity_service.py
+- Changed files: .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, local_pr_review.py, tests/test_capacity_service.py
+- Removed files: .github/workflows/architecture-pr-check.yml, generate_architecture_md.py
+- Impact summary: {'total_changed': 5, 'total_removed': 2, 'total_impacted': 7}
 
 ## HLD Diagram
 
@@ -17,9 +17,16 @@
 
 ```mermaid
 graph TD
+    local_pr_review_py[local_pr_review.py]
+    architecture_explorer_py[architecture_explorer.py]
+    local_pr_review_py --> architecture_explorer_py
+    pr_impact_py[pr_impact.py]
+    local_pr_review_py --> pr_impact_py
     test_capacity_service_py[test_capacity_service.py]
     capacity_service_py[capacity_service.py]
     test_capacity_service_py --> capacity_service_py
+    test_pr_impact_py[test_pr_impact.py]
+    test_pr_impact_py --> local_pr_review_py
 ```
 
 ## Layer Diagram
@@ -57,14 +64,15 @@ graph LR
 # Architecture Review Summary
 
 ## HLD Impact
-- Changed files: .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, tests/test_capacity_service.py
-- Components affected: capacity_service.py, test_capacity_service.py, test_capacity_service.py -> capacity_service.py
+- Changed files: .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, local_pr_review.py, tests/test_capacity_service.py
+- Components affected: capacity_service.py, local_pr_review.py, local_pr_review.py -> architecture_explorer.py, local_pr_review.py -> pr_impact.py, test_capacity_service.py, test_capacity_service.py -> capacity_service.py, test_pr_impact.py -> local_pr_review.py
 - Risk: High
 - Architectural note: review dependency boundaries and service entry points before merge.
 
 ## LLD Impact
 - Changed implementation blocks:
 - capacity_service.py | classes: CapacityService | functions: calculate_capacity
+- local_pr_review.py | classes: none | functions: _git_diff_stats, _categorize_paths, _python_symbols, _changed_python_symbols, render_html_report, _git_files, _git_value, _git_diff_status, _materialize_commit, run
 - test_capacity_service.py | classes: none | functions: test_calculate_capacity_does_not_return_negative_values
 
 ## Reviewer Guidance

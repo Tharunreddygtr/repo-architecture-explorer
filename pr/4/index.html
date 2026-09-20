@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Architecture PR Review: c2db25efdebdd15f7aba5c8a18417cd918714616 -&gt; a0295c156778159c4e169aaa9f609dfa7e2b21ff</title>
+    <title>Architecture PR Review: 7b7b557043b940185c405fdfff7cf346815aed10 -&gt; a0295c156778159c4e169aaa9f609dfa7e2b21ff</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script>document.addEventListener('DOMContentLoaded', () => mermaid.initialize({ startOnLoad: true, securityLevel: 'strict' }));</script>
     <style>
@@ -33,24 +33,24 @@
 <body>
     <h1>Architecture PR Review</h1>
     <p><strong>PR #4</strong> &middot; Tharunreddygtr &middot; <a href='https://github.com/Tharunreddygtr/repo-architecture-explorer/pull/4'>Open on GitHub</a><br>Add capacity calculation example</p>
-    <p><code>c2db25efdebdd15f7aba5c8a18417cd918714616</code> &rarr; <code>a0295c156778159c4e169aaa9f609dfa7e2b21ff</code></p>
+    <p><code>7b7b557043b940185c405fdfff7cf346815aed10</code> &rarr; <code>a0295c156778159c4e169aaa9f609dfa7e2b21ff</code></p>
     <div class="toolbar"><input id="report-search" type="search" placeholder="Filter files and symbols"><span class="small">Generated from Git diff and Python AST</span></div>
     <section>
         <div class="metrics">
-            <div class="metric">Base files<strong>24</strong></div>
+            <div class="metric">Base files<strong>26</strong></div>
             <div class="metric">Head files<strong>26</strong></div>
-            <div class="metric">Changed<strong>4</strong></div>
-            <div class="metric">Removed<strong>0</strong></div>
-            <div class="metric">Impacted<strong>3</strong></div>
+            <div class="metric">Changed<strong>5</strong></div>
+            <div class="metric">Removed<strong>2</strong></div>
+            <div class="metric">Impacted<strong>7</strong></div>
         </div>
-        <p><strong>Diff paths:</strong> .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, tests/test_capacity_service.py</p>
-        <p><strong>Changed files:</strong> .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, tests/test_capacity_service.py</p>
-        <p><strong>Removed files:</strong> none</p>
-        <p><strong>Impact summary:</strong> {&#x27;total_changed&#x27;: 4, &#x27;total_removed&#x27;: 0, &#x27;total_impacted&#x27;: 3}</p>
+        <p><strong>Diff paths:</strong> .github/workflows/architecture-pr-check.yml, .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, generate_architecture_md.py, local_pr_review.py, tests/test_capacity_service.py</p>
+        <p><strong>Changed files:</strong> .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, local_pr_review.py, tests/test_capacity_service.py</p>
+        <p><strong>Removed files:</strong> .github/workflows/architecture-pr-check.yml, generate_architecture_md.py</p>
+        <p><strong>Impact summary:</strong> {&#x27;total_changed&#x27;: 5, &#x27;total_removed&#x27;: 2, &#x27;total_impacted&#x27;: 7}</p>
     </section>
-    <section><h2>Files Changed</h2><table id="file-stats"><thead><tr><th>File</th><th>Added</th><th>Deleted</th></tr></thead><tbody><tr><td><span class='status status-M'>M</span> <code>.github/workflows/publish-architecture-pages.yml</code></td><td>+3</td><td>-47</td></tr><tr><td><span class='status status-M'>M</span> <code>README.md</code></td><td>+1</td><td>-1</td></tr><tr><td><span class='status status-A'>A</span> <code>examples/capacity_service.py</code></td><td>+8</td><td>-0</td></tr><tr><td><span class='status status-A'>A</span> <code>tests/test_capacity_service.py</code></td><td>+8</td><td>-0</td></tr></tbody></table></section>
-    <section><h2>Change Categories</h2><div class="categories"><div class='category'><h3>API</h3><ul><li>None</li></ul></div><div class='category'><h3>Database</h3><ul><li>None</li></ul></div><div class='category'><h3>Config</h3><ul><li><code>.github/workflows/publish-architecture-pages.yml</code></li></ul></div><div class='category'><h3>Tests</h3><ul><li><code>tests/test_capacity_service.py</code></li></ul></div><div class='category'><h3>Code</h3><ul><li><code>README.md</code></li><li><code>examples/capacity_service.py</code></li></ul></div></div></section>
-    <section><h2>Changed Classes and Functions</h2><table id="symbol-stats"><thead><tr><th>Change</th><th>Kind</th><th>File</th><th>Symbol</th></tr></thead><tbody><tr><td>added</td><td>class</td><td><code>examples/capacity_service.py</code></td><td>CapacityService</td></tr><tr><td>added</td><td>function</td><td><code>examples/capacity_service.py</code></td><td>calculate_capacity</td></tr><tr><td>added</td><td>function</td><td><code>tests/test_capacity_service.py</code></td><td>test_calculate_capacity_does_not_return_negative_values</td></tr></tbody></table></section>
+    <section><h2>Files Changed</h2><table id="file-stats"><thead><tr><th>File</th><th>Added</th><th>Deleted</th></tr></thead><tbody><tr><td><span class='status status-D'>D</span> <code>.github/workflows/architecture-pr-check.yml</code></td><td>+0</td><td>-87</td></tr><tr><td><span class='status status-M'>M</span> <code>.github/workflows/publish-architecture-pages.yml</code></td><td>+3</td><td>-73</td></tr><tr><td><span class='status status-M'>M</span> <code>README.md</code></td><td>+1</td><td>-1</td></tr><tr><td><span class='status status-A'>A</span> <code>examples/capacity_service.py</code></td><td>+8</td><td>-0</td></tr><tr><td><span class='status status-D'>D</span> <code>generate_architecture_md.py</code></td><td>+0</td><td>-112</td></tr><tr><td><span class='status status-M'>M</span> <code>local_pr_review.py</code></td><td>+1</td><td>-23</td></tr><tr><td><span class='status status-A'>A</span> <code>tests/test_capacity_service.py</code></td><td>+8</td><td>-0</td></tr></tbody></table></section>
+    <section><h2>Change Categories</h2><div class="categories"><div class='category'><h3>API</h3><ul><li>None</li></ul></div><div class='category'><h3>Database</h3><ul><li>None</li></ul></div><div class='category'><h3>Config</h3><ul><li><code>.github/workflows/architecture-pr-check.yml</code></li><li><code>.github/workflows/publish-architecture-pages.yml</code></li></ul></div><div class='category'><h3>Tests</h3><ul><li><code>tests/test_capacity_service.py</code></li></ul></div><div class='category'><h3>Code</h3><ul><li><code>README.md</code></li><li><code>examples/capacity_service.py</code></li><li><code>generate_architecture_md.py</code></li><li><code>local_pr_review.py</code></li></ul></div></div></section>
+    <section><h2>Changed Classes and Functions</h2><table id="symbol-stats"><thead><tr><th>Change</th><th>Kind</th><th>File</th><th>Symbol</th></tr></thead><tbody><tr><td>added</td><td>class</td><td><code>examples/capacity_service.py</code></td><td>CapacityService</td></tr><tr><td>added</td><td>function</td><td><code>examples/capacity_service.py</code></td><td>calculate_capacity</td></tr><tr><td>removed</td><td>function</td><td><code>generate_architecture_md.py</code></td><td>generate_architecture_md</td></tr><tr><td>removed</td><td>function</td><td><code>generate_architecture_md.py</code></td><td>main</td></tr><tr><td>modified</td><td>function</td><td><code>local_pr_review.py</code></td><td>run</td></tr><tr><td>added</td><td>function</td><td><code>tests/test_capacity_service.py</code></td><td>test_calculate_capacity_does_not_return_negative_values</td></tr></tbody></table></section>
     <section><h2>High Level Design</h2><div class="diagram"><svg id='architecture-svg' xmlns='http://www.w3.org/2000/svg' width='1200' height='790' viewBox='0 0 1200 790' aria-label='Architecture diagram'>
 <defs><style>.edge{stroke:#60a5fa;stroke-width:2;fill:none;stroke-linecap:round}.node{cursor:pointer;stroke-width:2;rx:12}.node:hover{opacity:0.9}.node-text{font: 14px Arial, sans-serif; fill:#e2e8f0; text-anchor:middle; dominant-baseline:middle}</style></defs>
 <text x='20' y='32' fill='#cbd5e1' font-size='18' font-family='Arial'>PR HLD View</text>
@@ -59,7 +59,7 @@
 <g class='node' data-module='test_capacity_service.py' data-layer='service' tabindex='0' role='button'><title>test_capacity_service.py</title><rect x='430' y='170' width='180' height='60' rx='10' style='fill:#22c55e;stroke:#60a5fa' class='node'/><text x='520' y='200' class='node-text'>test_capacity_service.py</text></g>
 <g class='node' data-module='repo_watcher.py' data-layer='data' tabindex='0' role='button'><title>repo_watcher.py</title><rect x='730' y='60' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='820' y='90' class='node-text'>repo_watcher.py</text></g>
 <g class='node' data-module='architecture_explorer.py' data-layer='infra' tabindex='0' role='button'><title>architecture_explorer.py</title><rect x='950' y='60' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='90' class='node-text'>architecture_explorer.py</text></g>
-<g class='node' data-module='local_pr_review.py' data-layer='infra' tabindex='0' role='button'><title>local_pr_review.py</title><rect x='950' y='170' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='200' class='node-text'>local_pr_review.py</text></g>
+<g class='node' data-module='local_pr_review.py' data-layer='infra' tabindex='0' role='button'><title>local_pr_review.py</title><rect x='950' y='170' width='180' height='60' rx='10' style='fill:#22c55e;stroke:#60a5fa' class='node'/><text x='1040' y='200' class='node-text'>local_pr_review.py</text></g>
 <g class='node' data-module='pr_impact.py' data-layer='infra' tabindex='0' role='button'><title>pr_impact.py</title><rect x='950' y='280' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='310' class='node-text'>pr_impact.py</text></g>
 <g class='node' data-module='self_analysis.py' data-layer='infra' tabindex='0' role='button'><title>self_analysis.py</title><rect x='950' y='390' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='420' class='node-text'>self_analysis.py</text></g>
 <g class='node' data-module='test_architecture_explorer.py' data-layer='infra' tabindex='0' role='button'><title>test_architecture_explorer.py</title><rect x='950' y='500' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='530' class='node-text'>test_architecture_explorer.py</text></g>
@@ -80,9 +80,16 @@
 <line class='edge' x1='1050' y1='640' x2='1030' y2='200'/>
 </svg></div></section>
     <section><h2>Dependency Impact</h2><div class="mermaid">graph TD
+    local_pr_review_py[local_pr_review.py]
+    architecture_explorer_py[architecture_explorer.py]
+    local_pr_review_py --> architecture_explorer_py
+    pr_impact_py[pr_impact.py]
+    local_pr_review_py --> pr_impact_py
     test_capacity_service_py[test_capacity_service.py]
     capacity_service_py[capacity_service.py]
-    test_capacity_service_py --> capacity_service_py</div></section>
+    test_capacity_service_py --> capacity_service_py
+    test_pr_impact_py[test_pr_impact.py]
+    test_pr_impact_py --> local_pr_review_py</div></section>
     <section><h2>Layer Diagram</h2><div class="mermaid">graph LR
     entry[Entry Layer]
     app_py[app.py]
@@ -136,14 +143,15 @@
     <section><h2>Architecture Review</h2><pre># Architecture Review Summary
 
 ## HLD Impact
-- Changed files: .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, tests/test_capacity_service.py
-- Components affected: capacity_service.py, test_capacity_service.py, test_capacity_service.py -&gt; capacity_service.py
+- Changed files: .github/workflows/publish-architecture-pages.yml, README.md, examples/capacity_service.py, local_pr_review.py, tests/test_capacity_service.py
+- Components affected: capacity_service.py, local_pr_review.py, local_pr_review.py -&gt; architecture_explorer.py, local_pr_review.py -&gt; pr_impact.py, test_capacity_service.py, test_capacity_service.py -&gt; capacity_service.py, test_pr_impact.py -&gt; local_pr_review.py
 - Risk: High
 - Architectural note: review dependency boundaries and service entry points before merge.
 
 ## LLD Impact
 - Changed implementation blocks:
 - capacity_service.py | classes: CapacityService | functions: calculate_capacity
+- local_pr_review.py | classes: none | functions: _git_diff_stats, _categorize_paths, _python_symbols, _changed_python_symbols, render_html_report, _git_files, _git_value, _git_diff_status, _materialize_commit, run
 - test_capacity_service.py | classes: none | functions: test_calculate_capacity_does_not_return_negative_values
 
 ## Reviewer Guidance
