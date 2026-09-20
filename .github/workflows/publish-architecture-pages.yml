@@ -160,6 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+    continue-on-error: true
     steps:
       - name: Add report link to pull request
         env:
@@ -180,7 +181,8 @@ jobs:
           report_url = f"https://{owner}.github.io/{name}/pr/{pr_number}/"
           marker = "<!-- architecture-report-link -->"
           body = f"{marker}\n### Architecture report\n[Open the visual architecture report for PR #{pr_number}]({report_url})"
-          api_url = f"https://api.github.com/repos/{repository}/issues/{pr_number}/comments"
+          # Use PR comments endpoint (not issues) for PR comments
+          api_url = f"https://api.github.com/repos/{repository}/pulls/{pr_number}/comments"
           headers = {
               "Accept": "application/vnd.github+json",
               "Authorization": f"Bearer {token}",
@@ -188,6 +190,11 @@ jobs:
           }
 
           try:
+              print(f"::debug::Attempting to post comment to PR #{pr_number}")
+              print(f"::debug::API URL: {api_url}")
+              print(f"::debug::Repository: {repository}")
+              print(f"::debug::PR Number: {pr_number}")
+              
               request = Request(api_url, headers=headers)
               with urlopen(request) as response:
                   comments = json.load(response)
@@ -197,10 +204,18 @@ jobs:
                   update = Request(update_url, data=json.dumps({"body": body}).encode(), headers=headers, method="PATCH")
                   with urlopen(update):
                       pass
+                  print(f"::notice::Updated existing architecture report comment on PR #{pr_number}")
               else:
                   create = Request(api_url, data=json.dumps({"body": body}).encode(), headers=headers, method="POST")
                   with urlopen(create):
                       pass
+                  print(f"::notice::Created new architecture report comment on PR #{pr_number}")
           except Exception as error:
-              print(f"::warning::Could not add architecture report comment: {error}")
+              error_msg = str(error)
+              if "403" in error_msg:
+                  print(f"::warning::PR comment failed (403 Forbidden). The GITHUB_TOKEN lacks permission to comment on PRs.")
+                  print(f"::warning::Fix: Repository Settings > Actions > General > Workflow permissions > Enable 'Read and write permissions'")
+                  print(f"::warning::Also check: Settings > Actions > General > 'Allow GitHub Actions to create and approve pull requests'")
+              else:
+                  print(f"::warning::Could not add architecture report comment: {error}")
           PY
