@@ -165,6 +165,14 @@ The HTML report can be opened directly from the filesystem. Mermaid diagrams use
 
 GitHub Actions can run the same command for every pull request and upload `changes.html` as a downloadable workflow artifact.
 
+On a pull request, open the workflow run and download the `pr-architecture-report` artifact to inspect the generated `changes.html` report.
+
+## Publish the report to GitHub Pages
+
+The `Publish architecture report to Pages` workflow publishes the latest report at the repository's GitHub Pages URL whenever `main` changes. Enable **Settings > Pages > Build and deployment > Source: GitHub Actions** once, then open the `page_url` shown in the workflow run's deployment environment.
+
+For a manual report, run the workflow from the Actions tab and optionally provide `base` and `head` commit, branch, or tag values. Pull requests continue to receive the downloadable artifact because deploying untrusted pull-request code directly to the shared Pages site would overwrite the published report.
+
 ## API reference
 
 ### `GET /api/summary`

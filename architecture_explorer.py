@@ -452,16 +452,17 @@ def build_svg_graph(
     y_step = 110
     node_w = 180
     node_h = 60
-    lines = []
-    lines.append("<svg id='architecture-svg' xmlns='http://www.w3.org/2000/svg' width='1200' height='620' viewBox='0 0 1200 620' aria-label='Architecture diagram'>")
-    lines.append("<defs><style>.edge{stroke:#60a5fa;stroke-width:2;fill:none;stroke-linecap:round}.node{cursor:pointer;stroke-width:2;rx:12}.node:hover{opacity:0.9}.node-text{font: 14px Arial, sans-serif; fill:#e2e8f0; text-anchor:middle; dominant-baseline:middle}</style></defs>")
-    lines.append(f"<text x='20' y='32' fill='#cbd5e1' font-size='18' font-family='Arial'>{view_name} View</text>")
-
     matrix: dict[str, list[str]] = {layer: [] for layer in layer_order}
     for name in sorted(all_modules):
         if name not in allowed_nodes:
             continue
         matrix.setdefault(layer_for(name), []).append(name)
+
+    graph_height = max(620, 130 + max((len(items) for items in matrix.values()), default=1) * y_step)
+    lines = []
+    lines.append(f"<svg id='architecture-svg' xmlns='http://www.w3.org/2000/svg' width='1200' height='{graph_height}' viewBox='0 0 1200 {graph_height}' aria-label='Architecture diagram'>")
+    lines.append("<defs><style>.edge{stroke:#60a5fa;stroke-width:2;fill:none;stroke-linecap:round}.node{cursor:pointer;stroke-width:2;rx:12}.node:hover{opacity:0.9}.node-text{font: 14px Arial, sans-serif; fill:#e2e8f0; text-anchor:middle; dominant-baseline:middle}</style></defs>")
+    lines.append(f"<text x='20' y='32' fill='#cbd5e1' font-size='18' font-family='Arial'>{view_name} View</text>")
 
     for layer in layer_order:
         items = matrix.get(layer, [])

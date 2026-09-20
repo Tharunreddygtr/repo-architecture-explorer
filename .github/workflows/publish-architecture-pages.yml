@@ -1,0 +1,82 @@
+name: Publish architecture report to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Optional base commit, branch, or tag
+        required: false
+        type: string
+      head:
+        description: Optional head commit, branch, or tag
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install analyzer dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Generate Pages report
+        env:
+          REQUESTED_BASE: ${{ inputs.base }}
+          REQUESTED_HEAD: ${{ inputs.head }}
+          PUSH_BASE: ${{ github.event.before }}
+          PUSH_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          base="$REQUESTED_BASE"
+          head="$REQUESTED_HEAD"
+          if [ -z "$base" ]; then base="$PUSH_BASE"; fi
+          if [ -z "$head" ]; then head="$PUSH_HEAD"; fi
+          if [ -z "$base" ] || printf '%s' "$base" | grep -Eq '^0+$'; then
+            base="$(git rev-parse "$head^1")"
+          fi
+          python local_pr_review.py "$base" "$head" \
+            --output site/changes.md \
+            --html-output site/index.html
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+      - name: Print report URL
+        run: 'echo "Architecture report: ${{ steps.deployment.outputs.page_url }}"'

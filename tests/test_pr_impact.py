@@ -208,6 +208,7 @@ def test_html_report_inlines_hld_and_mermaid_artifacts():
         "head",
         ["app.py"],
         ["app.py", "service.py"],
+        [],
         {"service.py"},
         {"changed_files": ["service.py"], "removed_files": [], "summary": {"total_changed": 1, "total_removed": 0, "total_impacted": 1}},
         {"modules": [], "dependency_edges": []},
@@ -218,6 +219,28 @@ def test_html_report_inlines_hld_and_mermaid_artifacts():
     assert "id='architecture-svg'" in html_report
     assert "mermaid@10" in html_report
     assert "service.py" in html_report
+
+
+def test_html_report_preserves_modified_file_summary():
+    artifacts = {
+        "hld_svg": "<svg></svg>",
+        "impact_mermaid": "graph TD\n  Impact[No internal dependency impact detected]",
+        "layer_mermaid": "graph LR",
+        "dependency_mermaid": "graph TD",
+    }
+    html_report = render_html_report(
+        "base",
+        "head",
+        ["README.md"],
+        ["README.md"],
+        [],
+        {"README.md"},
+        {"changed_files": ["README.md"], "removed_files": [], "summary": {"total_changed": 1, "total_removed": 0, "total_impacted": 0}},
+        {"modules": [], "dependency_edges": []},
+        artifacts,
+    )
+
+    assert "- Changed files: README.md" in html_report
 
 
 def test_webhook_persists_diagram_first_review(monkeypatch):
