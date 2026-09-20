@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Architecture PR Review: 91f2c9da7829354babd22bfb1c1445b75a777cb7 -&gt; be192ce3f5bf7aa6d7fed4eb260afb91f3789141</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', () => mermaid.initialize({ startOnLoad: true, securityLevel: 'strict' }));</script>
+    <style>
+        :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
+        body { max-width: 1280px; margin: 0 auto; padding: 32px; }
+        h1 { margin-top: 0; }
+        section { background: #111827; border: 1px solid #334155; border-radius: 10px; padding: 20px; margin-top: 20px; }
+        .metrics { display: flex; gap: 12px; flex-wrap: wrap; }
+        .metric { background: #1e293b; padding: 12px 16px; border-radius: 6px; }
+        .metric strong { display: block; margin-top: 4px; }
+        .toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .toolbar input { flex: 1; min-width: 220px; background: #020817; color: #e2e8f0; border: 1px solid #475569; border-radius: 6px; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid #334155; padding: 10px; text-align: left; }
+        .status { display: inline-block; min-width: 22px; text-align: center; border-radius: 4px; padding: 2px 5px; font-weight: 700; }
+        .status-A { background: #166534; } .status-M { background: #854d0e; } .status-D { background: #991b1b; }
+        .categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+        .category { background: #0b1220; border: 1px solid #334155; padding: 12px; border-radius: 6px; }
+        .category h3 { margin-top: 0; }
+        .diagram { overflow-x: auto; background: #020817; padding: 12px; border-radius: 6px; }
+        .diagram svg { display: block; min-width: 900px; max-width: 100%; height: auto; }
+        .mermaid { background: #020817; padding: 16px; overflow-x: auto; }
+        pre { white-space: pre-wrap; line-height: 1.5; }
+        code { color: #93c5fd; }
+    </style>
+</head>
+<body>
+    <h1>Architecture PR Review</h1>
+    <p><strong>PR #5</strong> &middot; Tharunreddygtr &middot; <a href='https://github.com/Tharunreddygtr/repo-architecture-explorer/pull/5'>Open on GitHub</a><br>Fix/pages root</p>
+    <p><code>91f2c9da7829354babd22bfb1c1445b75a777cb7</code> &rarr; <code>be192ce3f5bf7aa6d7fed4eb260afb91f3789141</code></p>
+    <div class="toolbar"><input id="report-search" type="search" placeholder="Filter files and symbols"><span class="small">Generated from Git diff and Python AST</span></div>
+    <section>
+        <div class="metrics">
+            <div class="metric">Base files<strong>24</strong></div>
+            <div class="metric">Head files<strong>24</strong></div>
+            <div class="metric">Changed<strong>2</strong></div>
+            <div class="metric">Removed<strong>0</strong></div>
+            <div class="metric">Impacted<strong>0</strong></div>
+        </div>
+        <p><strong>Diff paths:</strong> .github/workflows/publish-architecture-pages.yml, README.md</p>
+        <p><strong>Changed files:</strong> .github/workflows/publish-architecture-pages.yml, README.md</p>
+        <p><strong>Removed files:</strong> none</p>
+        <p><strong>Impact summary:</strong> {&#x27;total_changed&#x27;: 2, &#x27;total_removed&#x27;: 0, &#x27;total_impacted&#x27;: 0}</p>
+    </section>
+    <section><h2>Files Changed</h2><table id="file-stats"><thead><tr><th>File</th><th>Added</th><th>Deleted</th></tr></thead><tbody><tr><td><span class='status status-M'>M</span> <code>.github/workflows/publish-architecture-pages.yml</code></td><td>+45</td><td>-4</td></tr><tr><td><span class='status status-M'>M</span> <code>README.md</code></td><td>+1</td><td>-1</td></tr></tbody></table></section>
+    <section><h2>Change Categories</h2><div class="categories"><div class='category'><h3>API</h3><ul><li>None</li></ul></div><div class='category'><h3>Database</h3><ul><li>None</li></ul></div><div class='category'><h3>Config</h3><ul><li><code>.github/workflows/publish-architecture-pages.yml</code></li></ul></div><div class='category'><h3>Tests</h3><ul><li>None</li></ul></div><div class='category'><h3>Code</h3><ul><li><code>README.md</code></li></ul></div></div></section>
+    <section><h2>Changed Classes and Functions</h2><table id="symbol-stats"><thead><tr><th>Change</th><th>Kind</th><th>File</th><th>Symbol</th></tr></thead><tbody><tr><td colspan='4'>No changed Python classes or functions detected.</td></tr></tbody></table></section>
+    <section><h2>High Level Design</h2><div class="diagram"><svg id='architecture-svg' xmlns='http://www.w3.org/2000/svg' width='1200' height='790' viewBox='0 0 1200 790' aria-label='Architecture diagram'>
+<defs><style>.edge{stroke:#60a5fa;stroke-width:2;fill:none;stroke-linecap:round}.node{cursor:pointer;stroke-width:2;rx:12}.node:hover{opacity:0.9}.node-text{font: 14px Arial, sans-serif; fill:#e2e8f0; text-anchor:middle; dominant-baseline:middle}</style></defs>
+<text x='20' y='32' fill='#cbd5e1' font-size='18' font-family='Arial'>PR HLD View</text>
+<g class='node' data-module='app.py' data-layer='entry' tabindex='0' role='button'><title>app.py</title><rect x='130' y='60' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='220' y='90' class='node-text'>app.py</text></g>
+<g class='node' data-module='repo_watcher.py' data-layer='data' tabindex='0' role='button'><title>repo_watcher.py</title><rect x='730' y='60' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='820' y='90' class='node-text'>repo_watcher.py</text></g>
+<g class='node' data-module='architecture_explorer.py' data-layer='infra' tabindex='0' role='button'><title>architecture_explorer.py</title><rect x='950' y='60' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='90' class='node-text'>architecture_explorer.py</text></g>
+<g class='node' data-module='local_pr_review.py' data-layer='infra' tabindex='0' role='button'><title>local_pr_review.py</title><rect x='950' y='170' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='200' class='node-text'>local_pr_review.py</text></g>
+<g class='node' data-module='pr_impact.py' data-layer='infra' tabindex='0' role='button'><title>pr_impact.py</title><rect x='950' y='280' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='310' class='node-text'>pr_impact.py</text></g>
+<g class='node' data-module='self_analysis.py' data-layer='infra' tabindex='0' role='button'><title>self_analysis.py</title><rect x='950' y='390' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='420' class='node-text'>self_analysis.py</text></g>
+<g class='node' data-module='test_architecture_explorer.py' data-layer='infra' tabindex='0' role='button'><title>test_architecture_explorer.py</title><rect x='950' y='500' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='530' class='node-text'>test_architecture_explorer.py</text></g>
+<g class='node' data-module='test_pr_impact.py' data-layer='infra' tabindex='0' role='button'><title>test_pr_impact.py</title><rect x='950' y='610' width='180' height='60' rx='10' style='fill:#111827;stroke:#60a5fa' class='node'/><text x='1040' y='640' class='node-text'>test_pr_impact.py</text></g>
+<line class='edge' x1='230' y1='90' x2='1030' y2='90'/>
+<line class='edge' x1='230' y1='90' x2='1030' y2='310'/>
+<line class='edge' x1='230' y1='90' x2='810' y2='90'/>
+<line class='edge' x1='1050' y1='200' x2='1030' y2='90'/>
+<line class='edge' x1='1050' y1='200' x2='1030' y2='310'/>
+<line class='edge' x1='830' y1='90' x2='1030' y2='90'/>
+<line class='edge' x1='1050' y1='420' x2='1030' y2='90'/>
+<line class='edge' x1='1050' y1='530' x2='1030' y2='90'/>
+<line class='edge' x1='1050' y1='640' x2='1030' y2='90'/>
+<line class='edge' x1='1050' y1='640' x2='1030' y2='310'/>
+<line class='edge' x1='1050' y1='640' x2='810' y2='90'/>
+<line class='edge' x1='1050' y1='640' x2='210' y2='90'/>
+<line class='edge' x1='1050' y1='640' x2='1030' y2='200'/>
+</svg></div></section>
+    <section><h2>Dependency Impact</h2><div class="mermaid">graph TD
+    Impact[No internal dependency impact detected]</div></section>
+    <section><h2>Layer Diagram</h2><div class="mermaid">graph LR
+    entry[Entry Layer]
+    app_py[app.py]
+    entry --> app_py
+    service[Service Layer]
+    data[Data Layer]
+    repo_watcher_py[repo_watcher.py]
+    data --> repo_watcher_py
+    infra[Infra Layer]
+    architecture_explorer_py[architecture_explorer.py]
+    infra --> architecture_explorer_py
+    local_pr_review_py[local_pr_review.py]
+    infra --> local_pr_review_py
+    pr_impact_py[pr_impact.py]
+    infra --> pr_impact_py
+    self_analysis_py[self_analysis.py]
+    infra --> self_analysis_py
+    test_architecture_explorer_py[test_architecture_explorer.py]
+    infra --> test_architecture_explorer_py
+    test_pr_impact_py[test_pr_impact.py]
+    infra --> test_pr_impact_py</div></section>
+    <section><h2>Repository Dependency Graph</h2><div class="mermaid">graph TD
+    app.py[app.py]
+    architecture_explorer.py[architecture_explorer.py]
+    local_pr_review.py[local_pr_review.py]
+    pr_impact.py[pr_impact.py]
+    repo_watcher.py[repo_watcher.py]
+    self_analysis.py[self_analysis.py]
+    test_architecture_explorer.py[test_architecture_explorer.py]
+    test_pr_impact.py[test_pr_impact.py]
+    app.py --> architecture_explorer.py
+    app.py --> pr_impact.py
+    app.py --> repo_watcher.py
+    local_pr_review.py --> architecture_explorer.py
+    local_pr_review.py --> pr_impact.py
+    repo_watcher.py --> architecture_explorer.py
+    self_analysis.py --> architecture_explorer.py
+    test_architecture_explorer.py --> architecture_explorer.py
+    test_pr_impact.py --> architecture_explorer.py
+    test_pr_impact.py --> pr_impact.py
+    test_pr_impact.py --> repo_watcher.py
+    test_pr_impact.py --> app.py
+    test_pr_impact.py --> local_pr_review.py</div></section>
+    <section><h2>Architecture Review</h2><pre># Architecture Review Summary
+
+## HLD Impact
+- Changed files: .github/workflows/publish-architecture-pages.yml, README.md
+- Components affected: no direct module impact detected
+- Risk: Medium
+- Architectural note: review dependency boundaries and service entry points before merge.
+
+## LLD Impact
+- Changed implementation blocks:
+- No directly impacted low-level modules detected.
+
+## Reviewer Guidance
+- Confirm the change is limited to the intended layer.
+- Validate downstream calls and imports for blast radius.
+- Check whether a shared component or service is now coupled to the modified module.</pre></section>
+        <script>
+            document.getElementById('report-search').addEventListener('input', (event) => {
+                const query = event.target.value.toLowerCase();
+                document.querySelectorAll('#file-stats tbody tr, #symbol-stats tbody tr, .category li').forEach((item) => {
+                    item.hidden = query && !item.textContent.toLowerCase().includes(query);
+                });
+            });
+        </script>
+</body>
+</html>
